@@ -153,7 +153,7 @@ def main():
 
     # 4. Generate Embeddings and Upload to Pinecone
     print("Generating embeddings and pushing to Pinecone...")
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=1024) 
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=int(os.getenv("PINECONE_DIMENSIONS")))
     
     # This automatically embeds the chunks and upserts them to your Pinecone index
     PineconeVectorStore.from_documents(

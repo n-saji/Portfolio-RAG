@@ -9,7 +9,7 @@ def test_retriever(query: str, filters: dict = None):
     print(f"\n🔍 Testing Query: '{query}'")
     print("-" * 50)
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=1024)
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=int(os.getenv("PINECONE_DIMENSIONS")))
     index_name = os.getenv("PINECONE_INDEX_NAME")
 
     vectorstore = PineconeVectorStore(
