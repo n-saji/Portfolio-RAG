@@ -4,6 +4,7 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 python-dotenv
+mangum
 
 # AI Orchestration
 langchain
@@ -19,7 +20,8 @@ tiktoken
 PyGithub
 
 # Vector Database & Memory
-pinecone
+pinecone-client
+langchain-pinecone
 redis
 
 # Optional: Evaluation
