@@ -9,7 +9,6 @@ load_dotenv()
 USE_REDIS = os.getenv("USE_REDIS_MEMORY", "false").lower() == "true"
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-# Initialize Redis client only if enabled
 redis_client = redis.from_url(REDIS_URL) if USE_REDIS else None
 
 def get_chat_history(session_id: str) -> str:
@@ -25,7 +24,6 @@ def get_chat_history(session_id: str) -> str:
     if not messages:
         return "No previous history."
         
-    # Decode from bytes and join into a single string
     return "\n".join([msg.decode("utf-8") for msg in messages])
 
 def save_exchange(session_id: str, human_query: str, ai_response: str):
@@ -38,15 +36,13 @@ def save_exchange(session_id: str, human_query: str, ai_response: str):
         
     key = f"session:{session_id}"
     
-    # 1. Push the new messages to the right (end) of the list
     redis_client.rpush(key, f"User: {human_query}")
     redis_client.rpush(key, f"AI: {ai_response}")
     
-    # 2. Enforce the limit: Keep only the last 10 elements (5 exchanges)
-    # -10 is the 10th element from the end, -1 is the very last element
+    # Keep only the last 10 elements (5 exchanges)
     redis_client.ltrim(key, -10, -1)
     
-    # 3. (Optional but recommended) Set a TTL so old sessions expire after 24 hours
+    # TTL for 24 hours
     redis_client.expire(key, 86400)
 
 def clear_session_history(session_id: str):

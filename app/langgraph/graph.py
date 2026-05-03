@@ -8,4 +8,5 @@ class AgentState(TypedDict):
     answer: str
     session_id: str
     history: str
+    confidence: float
 
