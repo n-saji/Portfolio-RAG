@@ -1,9 +1,9 @@
 import fastapi 
-from config import config
+from app.config import config
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-import os
 from dotenv import load_dotenv
+from app.api.routes import router as api_router
 
 load_dotenv()
 
@@ -26,7 +26,7 @@ def read_health():
 
 app.include_router(
     prefix="/api/v1",
-    router=fastapi.APIRouter()
+    router=api_router,
 )
 
 
