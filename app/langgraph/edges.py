@@ -1,3 +1,5 @@
+import os
+
 from langgraph.graph import StateGraph, START, END
 from app.langgraph.graph import AgentState
 from app.langgraph.nodes.classifier import classify_query_node
@@ -15,7 +17,7 @@ def route_from_classifier(state: AgentState):
 def route_from_retriever(state: AgentState):
     """If the retriever found nothing, fallback. Otherwise, generate."""
 
-    CONFIDENCE_THRESHOLD = 0.55
+    CONFIDENCE_THRESHOLD = os.getenv("CONFIDENCE_THRESHOLD", 0.1)
     if not state["documents"]:
         print("---NO DOCS FOUND: ROUTING TO FALLBACK---")
         return "fallback"

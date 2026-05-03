@@ -18,7 +18,7 @@ def retrieve_node(state: AgentState):
 
     filter_kwargs = {}
     if category in ["project", "resume"]:
-        filter_kwargs["filter"] = {"type": category}
+        filter_kwargs = {"type": category}
     
     results = vectorstore.similarity_search_with_score(query=question,k=3,
                                                          filter=filter_kwargs if filter_kwargs else None)
