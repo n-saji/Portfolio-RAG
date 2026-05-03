@@ -6,4 +6,6 @@ class AgentState(TypedDict):
     classification: str
     documents: List[Document]
     answer: str
+    session_id: str
+    history: str
 

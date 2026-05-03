@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from dotenv import load_dotenv
 from app.api.routes import router as api_router
+from app.services.memory_service import create_session_id
 
 load_dotenv()
-
 app = fastapi.FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -15,6 +15,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*", "Authorization", "Content-Type", "X-CSRF-Token"],
 )
+
+@app.middleware("http")
+async def check_for_session_id(request: fastapi.Request, call_next):
+    print("Checking for session ID in middleware...")
+    session_id = None
+    if request.url.path.startswith("/api/v1/advanced-chat"):
+        session_id = request.cookies["session_id"] if "session_id" in request.cookies else None
+        if not session_id:
+            session_id = create_session_id()
+        request.state.session_id = session_id
+    response = await call_next(request)
+    if session_id:
+        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=86400)
+    return response
+
 
 @app.get("/")
 def read_root():

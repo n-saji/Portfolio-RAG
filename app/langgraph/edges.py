@@ -23,33 +23,27 @@ def route_from_retriever(state: AgentState):
 def build_graph():
     workflow = StateGraph(AgentState)
 
-    # 1. Add all nodes
-    workflow.add_node("classifier", classify_query_node) # From Step 10
+    workflow.add_node("classifier", classify_query_node) 
     workflow.add_node("retriever", retrieve_node)
     workflow.add_node("generator", generate_node)
     workflow.add_node("fallback", fallback_node)
 
-    # 2. Add Edges
     workflow.add_edge(START, "classifier")
     
-    # Conditional edge out of classifier
     workflow.add_conditional_edges(
         "classifier",
         route_from_classifier,
         {"retriever": "retriever", "fallback": "fallback"}
     )
     
-    # Conditional edge out of retriever
     workflow.add_conditional_edges(
         "retriever",
         route_from_retriever,
         {"generator": "generator", "fallback": "fallback"}
     )
     
-    # End edges
     workflow.add_edge("generator", END)
     workflow.add_edge("fallback", END)
 
-    # Compile the graph into a runnable application
     app = workflow.compile()
     return app

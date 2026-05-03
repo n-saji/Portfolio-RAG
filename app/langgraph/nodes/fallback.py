@@ -6,6 +6,6 @@ def fallback_node(state: AgentState):
     # This handles "unknown" classifications or inappropriate questions
     fallback_message = (
         "I'm sorry, but I can only answer questions related to Nikhil's projects and resume. "
-        "Please ask something specific about his work experience, skills, or projects."
+        "Please ask something specific about his work experience, skills or projects."
     )
     return {"answer": fallback_message}
