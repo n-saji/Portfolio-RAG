@@ -144,8 +144,8 @@ def main():
     # We split the text into smaller pieces so the LLM can digest specific context
     print(f"Loaded {len(documents)} document pages/files. Chunking...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500, 
-        chunk_overlap=50,
+        chunk_size=1000, 
+        chunk_overlap=200,
         separators=["\n\n", "\n", " ", ""]
     )
     chunks = text_splitter.split_documents(documents)

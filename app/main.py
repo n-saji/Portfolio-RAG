@@ -13,7 +13,8 @@ app.add_middleware(
     allow_origins=config.ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*", "Authorization", "Content-Type", "X-CSRF-Token"],
+    allow_headers=["*"],
+    
 )
 
 @app.middleware("http")
@@ -45,4 +46,4 @@ app.include_router(
 )
 
 
-handler = Mangum(app)
+handler = Mangum(app,lifespan="off")
