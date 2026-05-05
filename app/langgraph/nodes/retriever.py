@@ -2,12 +2,22 @@ import os
 from app.langgraph.graph import AgentState
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
+from app.services.memory_service import get_chat_history
+from app.utils.helpers import extract_last_user_message, is_follow_up_question
 
 # --- Node: Conditional Retriever ---
 def retrieve_node(state: AgentState):
     print("---RETRIEVING DOCUMENTS---")
     question = state["question"]
     category = state["classification"]
+    session_id = state.get("session_id", "default")
+
+    search_query = question
+    if is_follow_up_question(question):
+        history = get_chat_history(session_id)
+        last_user = extract_last_user_message(history)
+        if last_user:
+            search_query = f"{last_user} {question}"
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small", 
                                   dimensions=int(os.getenv("PINECONE_DIMENSIONS")))
@@ -21,7 +31,7 @@ def retrieve_node(state: AgentState):
         filter_kwargs = {"type": category}
     
     results = vectorstore.similarity_search_with_score(
-        query=question,
+        query=search_query,
         k=4,
         filter=filter_kwargs if filter_kwargs else None,
     )

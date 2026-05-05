@@ -1,5 +1,4 @@
 import os
-import re
 from typing import Any, Dict
 
 from dotenv import load_dotenv
@@ -7,28 +6,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
+from app.services.memory_service import get_chat_history
+from app.utils.helpers import (
+    contains_company_name,
+    extract_last_user_message,
+    is_follow_up_question,
+)
+
 load_dotenv()
-
-_COMPANY_ALIASES = {
-    "holiday channel": ["holiday channel", "holiday channel, llc"],
-    "wiz freight": ["wiz freight"],
-    "highradius": ["highradius", "high radius"],
-    "cognizant": ["cognizant"],
-    "prograd": ["prograd"],
-}
-
-
-def _normalize(text: str) -> str:
-    return re.sub(r"\s+", " ", text.strip().lower())
-
-
-def _contains_company_name(question: str) -> bool:
-    normalized = _normalize(question)
-    for aliases in _COMPANY_ALIASES.values():
-        for alias in aliases:
-            if alias in normalized:
-                return True
-    return False
 
 class QueryClassification(BaseModel):
     category: str = Field(
@@ -41,11 +26,19 @@ def classify_query_node(state: dict) -> Dict[str, Any]:
     Analyzes the user's question and routes it to the correct workflow.
     """
     question = state["question"]
+    session_id = state.get("session_id", "default")
     print(f"---CLASSIFYING QUERY: '{question}'---")
 
-    if _contains_company_name(question):
+    if contains_company_name(question):
         print("---ROUTING TO: RESUME (COMPANY MATCH)---")
         return {"classification": "resume"}
+
+    if is_follow_up_question(question):
+        history = get_chat_history(session_id)
+        last_user = extract_last_user_message(history)
+        if last_user and contains_company_name(last_user):
+            print("---ROUTING TO: RESUME (FOLLOW-UP COMPANY MATCH)---")
+            return {"classification": "resume"}
 
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, api_key=os.getenv("OPENAI_API_KEY"))
     structured_llm = llm.with_structured_output(QueryClassification)
