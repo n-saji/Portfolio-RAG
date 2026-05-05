@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Request
 
 from app.api.schemas import ChatRequest
@@ -6,6 +8,12 @@ from app.services.memory_service import save_exchange
 from app.services.rag_service import build_portfolio_rag_chain
 
 router = APIRouter()
+
+
+def _is_truthy(value: str | None) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
@@ -24,5 +32,16 @@ async def advanced_chat(request: Request, payload: ChatRequest):
 
     save_exchange(session_id=session_id, human_query=payload.question, ai_response=result["answer"])
 
-    return {"answer": result["answer"], "classification": result.get("classification"),
-        "debug_docs_retrieved": len(result.get("documents", []))}
+    response = {
+        "answer": result["answer"],
+        "classification": result.get("classification"),
+        "debug_docs_retrieved": len(result.get("documents", [])),
+    }
+
+    if _is_truthy(os.getenv("DEBUG_RAG")):
+        response["debug_retrieval"] = {
+            "scores": result.get("retrieval_scores", []),
+            "metadata": result.get("retrieval_metadata", []),
+        }
+
+    return response

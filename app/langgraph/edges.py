@@ -17,7 +17,7 @@ def route_from_classifier(state: AgentState):
 def route_from_retriever(state: AgentState):
     """If the retriever found nothing, fallback. Otherwise, generate."""
 
-    CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", 0.1))
+    CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", 0.25))
     if not state["documents"]:
         print("---NO DOCS FOUND: ROUTING TO FALLBACK---")
         return "fallback"

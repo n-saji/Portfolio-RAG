@@ -1,19 +1,92 @@
+import re
+
 from app.langgraph.graph import AgentState
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from app.services.memory_service import get_chat_history
 
+FALLBACK_ANSWER = (
+    "I don't have enough context to answer that, but you can reach out to Nikhil directly."
+)
+
+_STOPWORDS = {
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "of",
+    "to",
+    "in",
+    "at",
+    "for",
+    "with",
+    "from",
+    "on",
+    "about",
+    "tell",
+    "me",
+    "you",
+    "your",
+    "his",
+    "her",
+    "their",
+    "he",
+    "she",
+    "they",
+    "experience",
+    "role",
+    "roles",
+    "job",
+    "jobs",
+    "company",
+    "project",
+    "projects",
+    "work",
+    "worked",
+}
+
+
+def _extract_entity_candidates(question: str) -> list[str]:
+    candidates: set[str] = set()
+
+    preposition_matches = re.findall(
+        r"\b(?:in|at|for|with|from|on)\s+([A-Za-z][A-Za-z0-9&\-.]*(?:\s+[A-Za-z][A-Za-z0-9&\-.]*){0,2})",
+        question,
+        flags=re.IGNORECASE,
+    )
+    for match in preposition_matches:
+        cleaned = re.sub(r"[\.,!?;:]+$", "", match).strip()
+        words = [w for w in cleaned.split() if w.lower() not in _STOPWORDS]
+        if words:
+            candidates.add(" ".join(words))
+
+    cap_matches = re.findall(r"\b[A-Z][A-Za-z0-9&\-.]{2,}\b", question)
+    for match in cap_matches:
+        if match.lower() not in _STOPWORDS:
+            candidates.add(match)
+
+    return sorted({c.strip() for c in candidates if c.strip()})
+
 def generate_node(state: AgentState):
     print("---GENERATING ANSWER WITH MEMORY---")
     question = state["question"]
     documents = state["documents"]
     session_id = state.get("session_id", "default")
+    classification = state.get("classification")
 
     chat_history = get_chat_history(session_id)
     
     # Format docs into a single string
     context = "\n\n".join(doc.page_content for doc in documents)
+
+    # if classification == "resume":
+    #     candidates = _extract_entity_candidates(question)
+    #     if candidates:
+    #         context_lower = context.lower()
+    #         if not any(candidate.lower() in context_lower for candidate in candidates):
+    #             return {"answer": FALLBACK_ANSWER, "history": chat_history}
 
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
     
@@ -21,7 +94,7 @@ def generate_node(state: AgentState):
         "You are an AI assistant for Nikhil's portfolio. "
         "Answer the question based ONLY on the following context. "
         "Use the Conversation History for context if the user asks a follow-up question. "
-        "If you don't know the answer, say you don't know.\n\n"
+        "If you don't know the answer based on the context, say you don't know.\n\n"
         "Conversation History:\n{history}\n\n"
         "Question: {question}\n"
         "Context: {context}"

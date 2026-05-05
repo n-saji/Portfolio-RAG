@@ -1,6 +1,6 @@
 import os
 from app.langgraph.graph import AgentState
-from langchain_openai import  OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
 # --- Node: Conditional Retriever ---
@@ -20,16 +20,42 @@ def retrieve_node(state: AgentState):
     if category in ["project", "resume"]:
         filter_kwargs = {"type": category}
     
-    results = vectorstore.similarity_search_with_score(query=question,k=3,
-                                                         filter=filter_kwargs if filter_kwargs else None)
+    results = vectorstore.similarity_search_with_score(
+        query=question,
+        k=4,
+        filter=filter_kwargs if filter_kwargs else None,
+    )
     
     if not results:
-        return {"documents": [], "confidence": 0.0}
-    
-    docs = [res[0] for res in results]
-    scores = [res[1] for res in results]
-    
-    avg_confidence = sum(scores) / len(scores)
-    print(f"---RETRIEVAL CONFIDENCE: {avg_confidence:.4f}---")
+        return {
+            "documents": [],
+            "confidence": 0.0,
+            "retrieval_scores": [],
+            "retrieval_metadata": [],
+        }
 
-    return {"documents": docs, "confidence": avg_confidence}
+    min_score = float(os.getenv("MIN_SCORE_THRESHOLD", 0.2))
+    filtered = [res for res in results if res[1] >= min_score]
+    if not filtered:
+        print(f"---NO DOCS ABOVE MIN_SCORE_THRESHOLD ({min_score})---")
+        return {
+            "documents": [],
+            "confidence": 0.0,
+            "retrieval_scores": [],
+            "retrieval_metadata": [],
+        }
+
+    docs = [res[0] for res in filtered]
+    scores = [res[1] for res in filtered]
+    metadata = [doc.metadata for doc in docs]
+
+    max_confidence = max(scores)
+    print(f"---RETRIEVAL CONFIDENCE (MAX): {max_confidence:.4f}---")
+    print(f"---RETRIEVED DOCUMENTS---")
+
+    return {
+        "documents": docs,
+        "confidence": max_confidence,
+        "retrieval_scores": scores,
+        "retrieval_metadata": metadata,
+    }

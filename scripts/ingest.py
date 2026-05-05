@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, TextLoader
+from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
@@ -16,19 +16,118 @@ def main():
 
     documents = []
     
-    resume_path = "data/raw/resume.pdf"
-    if os.path.exists(resume_path):
-        print(f"Loading resume from {resume_path}...")
-        loader = PyPDFLoader(resume_path)
-        resume_docs = loader.load()
+    resume_items = [
+        {
+            "file": "data/raw/resume/summary.md",
+            "metadata": {
+                "type": "resume",
+                "section": "summary",
+                "name": "Summary",
+            },
+        },
+        {
+            "file": "data/raw/resume/skills.md",
+            "metadata": {
+                "type": "resume",
+                "section": "skills",
+                "name": "Skills",
+            },
+        },
+        {
+            "file": "data/raw/resume/holiday_channel.md",
+            "metadata": {
+                "type": "resume",
+                "section": "experience",
+                "name": "Holiday Channel, LLC",
+                "role": "Software Engineer Intern",
+                "tech": [
+                    "AWS Lambda",
+                    "Amazon S3",
+                    "FastAPI",
+                    "Redis",
+                    "PostgreSQL",
+                    "Python",
+                ],
+            },
+        },
+        {
+            "file": "data/raw/resume/wiz_freight.md",
+            "metadata": {
+                "type": "resume",
+                "section": "experience",
+                "name": "Wiz Freight",
+                "role": "Software Development Engineer (Intern -> Full-time)",
+                "tech": [
+                    "Go",
+                    "PostgreSQL",
+                    "gRPC",
+                    "Protobuf",
+                    "Gin",
+                    "GORM",
+                    "SSE",
+                    "AWS SQS",
+                ],
+            },
+        },
+        {
+            "file": "data/raw/resume/highradius.md",
+            "metadata": {
+                "type": "resume",
+                "section": "experience",
+                "name": "HighRadius",
+                "role": "Data Analyst Intern",
+                "tech": [
+                    "Python",
+                    "Pandas",
+                    "NumPy",
+                    "Scikit-learn",
+                    "Logistic Regression",
+                    "Decision Trees",
+                ],
+            },
+        },
+        {
+            "file": "data/raw/resume/cognizant.md",
+            "metadata": {
+                "type": "resume",
+                "section": "experience",
+                "name": "Cognizant",
+                "role": "Programmer Analyst Intern",
+                "tech": [
+                    "Data Analysis",
+                    "Reporting",
+                    "Process Optimization",
+                ],
+            },
+        },
+        {
+            "file": "data/raw/resume/prograd.md",
+            "metadata": {
+                "type": "resume",
+                "section": "experience",
+                "name": "Prograd",
+                "role": "Developer Intern",
+                "tech": [
+                    "Code Review",
+                    "Debugging",
+                    "Performance Optimization",
+                ],
+            },
+        },
+    ]
 
-        for doc in resume_docs:
-            doc.metadata["type"] = "resume"
-            
-        documents.extend(resume_docs)
+    for item in resume_items:
+        if os.path.exists(item["file"]):
+            print(f"Loading resume section: {item['metadata']['name']}...")
+            loader = TextLoader(item["file"])
+            resume_docs = loader.load()
 
-    else:
-        print("Warning: Resume PDF not found.")
+            for doc in resume_docs:
+                doc.metadata.update(item["metadata"])
+
+            documents.extend(resume_docs)
+        else:
+            print(f"Warning: Resume file {item['file']} not found.")
 
 
     projects = [
