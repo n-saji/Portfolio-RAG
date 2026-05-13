@@ -99,9 +99,6 @@ def generate_node(state: AgentState):
         "Question: {question}"
 )
 
-    # print(prompt.format(question=question, context=context, history=chat_history))
-    # print(context)
-    print(chat_history)
     
     # use StrOutputParser to get raw text back instead of an AIMessage object
     chain = prompt | llm | StrOutputParser()

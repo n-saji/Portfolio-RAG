@@ -21,7 +21,6 @@ app = fastapi.FastAPI()
 
 @app.middleware("http")
 async def check_for_session_id(request: fastapi.Request, call_next):
-    print("Checking for session ID in middleware...")
     session_id = None
     if request.url.path.startswith("/api/v1/advanced-chat"):
         session_id = request.cookies["session_id"] if "session_id" in request.cookies else None
