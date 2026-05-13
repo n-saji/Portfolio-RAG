@@ -1,4 +1,4 @@
-# Neural Networks Project 
+# Neural Networks 
 
 **Scope**
 - Tabular binary classification from a CSV dataset.
@@ -258,7 +258,7 @@ The notebooks rely on the following core libraries:
 
 Device selection is dynamic and uses `cuda`, `mps`, or `cpu` depending on availability.
 
-## High-Level Flow Across the Project
+## High-Level Flow
 
 1) Tabular dataset is cleaned, scaled, and balanced.
 2) A baseline MLP is trained, evaluated, and saved.

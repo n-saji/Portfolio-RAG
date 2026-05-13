@@ -1,4 +1,4 @@
-# Talky Space BE 
+# Talky Space 
 ## 1. Purpose and scope
 - A Go backend for a chat application with users, chatrooms, messages, authentication, and WebSocket realtime delivery.
 - REST endpoints for auth, users, chatrooms, messages, and WebSocket connection.
@@ -18,53 +18,7 @@
 - Password hashing: `golang.org/x/crypto/bcrypt`
 - GORM is present only for model hooks and error sentinel (`gorm.ErrRecordNotFound`), but not used for database operations.
 
-## 3. Runtime startup flow
-Entry point is [main.go](main.go).
 
-1. Load config using `config.Load()`.
-2. Create a context that cancels on SIGINT or SIGTERM.
-3. Create a pgx connection pool with `config.ConnectToDb(ctx)`.
-4. Ping the DB using `config.PingDb(ctx, pool)`.
-5. Run SQL migrations using Goose with embedded migrations.
-6. Build DAOs and services, then router.
-7. Start the WebSocket hub in a goroutine.
-8. Start HTTP server and wait for shutdown signal.
-
-The HTTP server uses timeouts:
-- Read timeout: 5s
-- Write timeout: 10s
-- Idle timeout: 120s
-- Read header timeout: 5s
-
-## 4. Configuration and environment variables
-Configuration is loaded from `.env` (via `godotenv.Load`) or defaults.
-
-Relevant keys (see [config/config.go](config/config.go)):
-- `DATABASE_URL` default `postgres://user:password@localhost:5432/talky_space`
-- `SERVER_PORT` default `8080`
-- `FRONTEND_URL` default `http://localhost:3000`
-- `ACCESS_TOKEN_SECRET` (required for JWT)
-- `REFRESH_TOKEN_SECRET` (required for JWT)
-- `REQUEST_TIMEOUT_SECONDS` default `5`
-
-Database pool settings (see [config/db.go](config/db.go)):
-- Max conns: 20
-- Min conns: 5
-- Max lifetime: 1 hour
-- Max idle: 10 minutes
-- Connect timeout: 30 seconds
-- Health check period: 1 minute
-
-## 5. Database schema and migrations
-All schema is defined in [migrations/20251013213454_all_tables.sql](migrations/20251013213454_all_tables.sql), executed at startup.
-
-Tables:
-- `users`: id, username, email (unique), phone_number (unique), password_hash, avatar_url, created_at, updated_at
-- `chatrooms`: id, name, description, is_group, created_by (FK users), created_at, updated_at
-- `chatroom_members`: id, chatroom_id, user_id, joined_at, unique(chatroom_id, user_id)
-- `messages`: id, chatroom_id, user_id, content, created_at + indexes on chatroom_id and user_id
-- `summaries`: id, chatroom_id, content, generated_by, generated_at (not referenced elsewhere in code)
-- `sessions`: id, user_id, refresh_token, expires_at, created_at (optional, not wired in auth flow)
 
 ## 6. HTTP routing and middleware
 Routing is defined in [handlers/router.go](handlers/router.go) with `chi`.
@@ -163,20 +117,6 @@ Key DAO methods:
 - Messages: create, fetch by chatroom, delete by chatroom
 - Sessions: save refresh token (defined but not used)
 
-## 10. Models and DTOs
-Models define DB shapes and conversion to DTOs. DTOs define HTTP payloads.
-
-Models:
-- [models/users.go](models/users.go), [models/chatrooms.go](models/chatrooms.go), [models/chatroomMembers.go](models/chatroomMembers.go), [models/messages.go](models/messages.go), [models/sessions.go](models/sessions.go)
-- GORM hooks exist but are not triggered by pgx queries. The code manually sets timestamps and UUIDs.
-
-DTOs:
-- Auth: [dtos/auth.go](dtos/auth.go)
-- Users: [dtos/users.go](dtos/users.go)
-- Chatrooms: [dtos/chatrooms.go](dtos/chatrooms.go)
-- Chatroom members: [dtos/chatroomMembers.go](dtos/chatroomMembers.go)
-- Messages: [dtos/messages.go](dtos/messages.go)
-- WebSockets DTO file exists but is empty ([dtos/webSockets.go](dtos/webSockets.go))
 
 ## 11. WebSocket hub behavior
 The hub is in [utils/webSockets.go](utils/webSockets.go) and is started from main with `go utils.HubInstance.Run(ctx)`.
@@ -212,48 +152,8 @@ A simple Docker build is defined in [Dockerfile](Dockerfile):
 - WebSocket DTO file is empty.
 - Hub database pool wiring is missing (see WebSocket note above).
 
-## 15. Suggested high level data flows
 
-Login:
-1. Client posts credentials to `/auth/login`.
-2. Service validates and returns tokens.
-3. Cookies are set and access token is also returned in JSON.
-
-Send a message (REST):
-1. Client POST `/messages/new-chat` with sender/recipient/content.
-2. Service verifies or creates chatroom, stores message, and broadcasts to WebSocket hub.
-
-Send a message (WebSocket):
-1. Client sends JSON message to `/ws/connect` socket.
-2. Hub reads and broadcasts to all members in the chatroom.
-3. Message is stored in DB for sender member only (non server messages).
-
-Fetch chat history:
-- Client GET `/messages/chatroom/{cid}` returns all messages ordered by created_at.
-
-## 16. Files and directories at a glance
-- `main.go`: application boot, config, DB, migrations, router, WebSocket hub
-- `config/`: env config and DB pool
-- `auth/`: JWT helpers
-- `middleware/`: auth middleware
-- `handlers/`: HTTP handlers and routing
-- `service/`: business logic
-- `daos/`: SQL layer using pgxpool
-- `models/`: DB models and converters
-- `dtos/`: request and response payloads
-- `utils/`: WebSocket hub, client, and broadcast helpers
-- `migrations/`: database schema
-
-## 17. Operational notes for RAG consumers
-- The code uses cookies for JWT tokens, not just Authorization headers.
-- The CORS logic only permits `http://localhost:3000` origin and short-circuits OPTIONS.
-- DB migrations run automatically at startup, using embedded SQL.
-- The API is designed around UUIDs for all main entities.
-- There is a mix of SQL and model-based transformations; do not assume GORM handles persistence.
-
-
-
-# Talky Space - Fronted
+# Talky Space 
 
 ## 1) Project Purpose and Scope
 
@@ -389,31 +289,6 @@ Chat page uses a custom context (RecipientContext) to track:
 
 This avoids unnecessary Redux coupling for local chat state.
 
-### Chat Start Flow
-
-When a user searches and selects a recipient:
-
-1. Fetch chatroom between users: GET /chatrooms/find-by-users/user1/:id/user2/:id
-2. Fetch messages for chatroom: GET /messages/chatroom/:chatroomId
-3. Store recipient, chatroom, and messages in RecipientContext
-4. Navigate to /chat/[recipient]
-
-### Chat Rendering and Messaging
-
-- Incoming messages are merged by chatroom ID with locally fetched history.
-- Message bubbles render sender/receiver alignment and timestamps.
-- Sending a message writes to the socket and also adds it locally for optimistic UI.
-
-Message payload shape (from redux slice):
-
-- user_id
-- receiver_id
-- content
-- chatroom_id
-- source
-- created_at
-- id
-
 ### Refresh Fallback
 
 If the chat page is refreshed and the recipient is missing from context:
@@ -421,58 +296,6 @@ If the chat page is refreshed and the recipient is missing from context:
 - The page re-derives the recipient ID from the URL.
 - It re-fetches chatroom and messages to rehydrate the UI.
 
-## 10) User Profile and Avatar Storage
-
-The /profile page provides:
-
-- Display of user details (id, email, phone)
-- Avatar preview and upload via a modal dialog
-
-Avatar storage pipeline:
-
-1. Upload image to Supabase storage bucket talky-chat.
-2. Generate a signed URL for display (1 week expiration).
-3. Update backend user profile with avatar file path (PUT /users/update).
-4. Update Redux user slice with avatar_file_path and avatar_url.
-
-Supabase client uses:
-
-- NEXT_PUBLIC_SUPABASE_URL
-- NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-## 11) Sidebar and Navigation Shell
-
-The app shell provides:
-
-- Sidebar navigation with Dashboard, Chat, Calendar, Search
-- User dropdown for account and sign out
-- Breadcrumbs based on current path
-
-Sign out calls POST /auth/logout and redirects to /login.
-
-## 12) Styling and Theming
-
-- Tailwind CSS v4 is configured via @import directives in globals.css.
-- Colors and radii are defined as CSS variables with light and dark modes.
-- next-themes handles class switching for dark mode.
-
-## 13) Environment Variables (Required)
-
-The project expects these environment variables:
-
-- NEXT_PUBLIC_API_URL: base URL for REST API
-- NEXT_PUBLIC_WS_URL: WebSocket endpoint
-- NEXT_PUBLIC_SUPABASE_URL: Supabase project URL
-- NEXT_PUBLIC_SUPABASE_ANON_KEY: Supabase public key
-
-## 14) Build and Run
-
-Common scripts from package.json:
-
-- npm run dev: local development
-- npm run build: production build
-- npm run start: production server
-- npm run lint: linting
 
 ## 15) Key Design Choices and Assumptions
 
@@ -481,15 +304,4 @@ Common scripts from package.json:
 - Redux persists user identity but not chat history.
 - Supabase is used only for file storage, not for primary auth or DB.
 
-## 16) Known Areas for Future Work
 
-These are implied by the current implementation:
-
-- Protect /chat with middleware or server-side checks (currently commented).
-- Add better error surfaces for API failures in chat and profile.
-- Implement calendar and search sections in the sidebar.
-- Improve global type definitions for User and Chatroom interfaces.
-
----
-
-End of technical overview.

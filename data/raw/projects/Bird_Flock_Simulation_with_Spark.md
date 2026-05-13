@@ -1,6 +1,6 @@
-# Technical Overview - Bird Flock Simulation with Spark
+# Bird Flock Simulation with Spark
 
-## 1. Project Purpose and Scope
+## 1. Purpose and Scope
 
 The repository combines multiple Spark-based experiments and one main simulation:
 

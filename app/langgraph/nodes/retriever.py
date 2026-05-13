@@ -10,6 +10,8 @@ def retrieve_node(state: AgentState):
     print("---RETRIEVING DOCUMENTS---")
     question = state["question"]
     category = state["classification"]
+    section = state.get("section", "")
+    tech = state.get("tech", [])
     session_id = state.get("session_id", "default")
 
     search_query = question
@@ -29,6 +31,10 @@ def retrieve_node(state: AgentState):
     filter_kwargs = {}
     if category in ["project", "resume"]:
         filter_kwargs = {"type": category}
+        if category == "resume" and section:
+            filter_kwargs["section"] = section
+        if tech:
+            filter_kwargs["tech"] = {"$in": tech}
     
     results = vectorstore.similarity_search_with_score(
         query=search_query,
@@ -58,6 +64,9 @@ def retrieve_node(state: AgentState):
     docs = [res[0] for res in filtered]
     scores = [res[1] for res in filtered]
     metadata = [doc.metadata for doc in docs]
+
+    for doc, score in zip(docs, scores):
+        print(f"Score: {score:.4f} | Source: {doc.metadata.get('source', 'unknown')} | Content: {doc.page_content[:100]}...")
 
     max_confidence = max(scores)
     print(f"---RETRIEVAL CONFIDENCE (MAX): {max_confidence:.4f}---")

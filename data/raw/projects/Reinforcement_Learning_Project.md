@@ -1,4 +1,4 @@
-# Reinforcement Learning Project
+# Reinforcement Learning
 
 ## 1. Purpose and scope
 This repository is a compact reinforcement learning (RL) sandbox centered on two grid-based environments and multiple tabular control algorithms. It demonstrates how to:
@@ -206,13 +206,8 @@ No pretrained models, datasets, or serialized Q-tables are saved to disk by defa
 - The notebooks duplicate some environment definitions to keep each notebook self-contained.
 - For RAG ingestion, consider chunking by notebook and section so that environment definitions and algorithm implementations are discoverable separately.
 
-## 11. How to run
-1. Open a notebook listed in section 2.
-2. Run the install cell (if present) or install dependencies manually.
-3. Execute cells top to bottom to generate plots and artifacts.
-4. For GIF generation, run the visualization notebook and call `SAVEGIF()` after rendering frames.
 
-## 12. Summary of "things done" in this project
+## 12. Summary
 - Implemented two custom grid-world environments with reward shaping and termination logic.
 - Built SARSA agents for both the Treasure Hunt and Warehouse Robot tasks.
 - Implemented n-step Double Q-Learning with two Q-tables and n-step returns.

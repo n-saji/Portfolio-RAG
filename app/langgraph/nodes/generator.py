@@ -81,13 +81,6 @@ def generate_node(state: AgentState):
     # Format docs into a single string
     context = "\n\n".join(doc.page_content for doc in documents)
 
-    # if classification == "resume":
-    #     candidates = _extract_entity_candidates(question)
-    #     if candidates:
-    #         context_lower = context.lower()
-    #         if not any(candidate.lower() in context_lower for candidate in candidates):
-    #             return {"answer": FALLBACK_ANSWER, "history": chat_history}
-
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
     
     prompt = ChatPromptTemplate.from_template(
@@ -106,7 +99,8 @@ def generate_node(state: AgentState):
         "Question: {question}"
 )
 
-    print(prompt.format(question=question, context=context, history=chat_history))
+    # print(prompt.format(question=question, context=context, history=chat_history))
+    print(context)
     
     # use StrOutputParser to get raw text back instead of an AIMessage object
     chain = prompt | llm | StrOutputParser()

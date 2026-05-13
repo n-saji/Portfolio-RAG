@@ -20,24 +20,8 @@ Core stack:
 - ESLint for linting, with React and React Hooks rules enabled.
 - gh-pages for deploying the built `dist` output to GitHub Pages.
 
-Source of configuration:
-- Vite config: [vite.config.js](vite.config.js)
-- ESLint config: [eslint.config.js](eslint.config.js)
-- Project metadata and scripts: [package.json](package.json)
 
-## 3. Build, Run, and Deploy
 
-Scripts from [package.json](package.json):
-- `dev`: starts the Vite dev server.
-- `build`: builds a production bundle into `dist`.
-- `preview`: runs a preview server for the build output.
-- `lint`: runs ESLint on the codebase.
-- `predeploy`: builds before deployment.
-- `deploy`: pushes `dist` to GitHub Pages using `gh-pages`.
-
-GitHub Pages configuration:
-- The app base URL is set in [vite.config.js](vite.config.js) via `base: "/ToDo-App/"`.
-- `homepage` in [package.json](package.json) matches the GitHub Pages URL.
 
 ## 4. Runtime Entry and App Composition
 
@@ -147,56 +131,3 @@ Task object schema (in-memory and persisted):
 Persistence:
 - `tasks` stored as JSON in `localStorage`.
 - `darkMode` stored as JSON in `localStorage`.
-
-## 7. Styling and UI
-
-Global styles:
-- [src/index.css](src/index.css) sets the base font to Roboto.
-- The font is loaded from Google Fonts in [index.html](index.html).
-
-Component styles:
-- [src/components/digitalClock.css](src/components/digitalClock.css)
-  - Centers the clock and sets font size/weight.
-- [src/components/render_task.css](src/components/render_task.css)
-  - Layout for header, input row, table, buttons, and responsive rules.
-
-Theme-related styling:
-- Many colors are set inline in React to react to `darkMode` state.
-- The dark theme uses darker backgrounds and light text for readability.
-- A smooth transition is used to avoid abrupt changes.
-
-Responsive design:
-- Media query at `max-width: 1000px` reduces font sizes, input widths,
-  and button sizes to improve mobile experience.
-
-## 8. Linting and Code Quality
-
-ESLint configuration in [eslint.config.js](eslint.config.js):
-- Uses recommended ESLint rules and React-specific rules.
-- Enforces React Hooks best practices.
-- Enables React Refresh checks for better fast-refresh safety.
-
-## 9. Deployment Context
-
-The project is configured for GitHub Pages:
-- Build output is placed in `dist`.
-- `gh-pages` publishes the `dist` folder.
-- The base path is set to `/ToDo-App/` so assets resolve correctly.
-
-## 10. Notable Implementation Details and Behavior
-
-- The task list is only persisted when the user clicks "Save List".
-  If the user refreshes before saving, new tasks are not stored.
-- The `Enter` key handler is global and triggers task addition from any focus state.
-- The app uses `Math.random()` for task IDs, which is simple but not stable across sessions.
-- The `updateTask` flow uses a `prompt`, which is synchronous and blocks the UI.
-- `darkMode` toggles the document body background directly; text colors are set inline.
-
-## 11. Key Files Summary
-
-- App shell and entry: [index.html](index.html), [src/main.jsx](src/main.jsx)
-- Top-level component: [src/App.jsx](src/App.jsx)
-- Task UI and logic: [src/components/render_task.jsx](src/components/render_task.jsx)
-- Clock widget: [src/components/digitalClock.jsx](src/components/digitalClock.jsx)
-- Styling: [src/index.css](src/index.css), [src/components/render_task.css](src/components/render_task.css), [src/components/digitalClock.css](src/components/digitalClock.css)
-- Tooling config: [package.json](package.json), [vite.config.js](vite.config.js), [eslint.config.js](eslint.config.js)

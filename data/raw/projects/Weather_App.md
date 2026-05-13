@@ -1,5 +1,8 @@
 # Weather App Technical Overview
 
+## About
+Real-time global weather app powered by OpenWeatherMap with a Node.js backend hosted on AWS Lambda
+
 ## Stack and tooling
 - Frontend framework: React 18 (JSX, functional components, hooks).
 - Build tool: Vite (ES modules, fast dev server, optimized production builds).
@@ -107,48 +110,6 @@ The frontend assumes the existence of a backend that exposes three endpoints und
 
 The client does not directly use `import.meta.env` or API keys. The README and GitHub Actions secrets mention API keys, which suggests the backend (not in this repo) likely uses those keys to call external services.
 
-## Configuration
-`src/config/config.jsx` defines API endpoints:
-- `SERVER_API` points to a deployed AWS Lambda URL.
-- `LOCAL_SERVER_API` points to `http://localhost:5000/api` for local backend testing.
-
-## Styling and UI
-- Global styles are in `src/index.css` and apply the Poppins font to all elements.
-- The main UI is styled via component-level CSS files:
-  - SearchBar layout, dropdown, responsiveness.
-  - Weather details layout and typography.
-  - Forecast horizontal scroll list styling.
-- `src/App.css` currently contains no styles.
-
-## Build and deployment
-### Vite build
-- `npm run dev` starts the Vite dev server.
-- `npm run build` produces a production build in `dist/`.
-- `npm run preview` serves the production build locally.
-
-### GitHub Pages
-- `package.json` sets `homepage` to `https://n-saji.github.io/weather_app/`.
-- `vite.config.js` sets `base: "/weather_app/"` to match GitHub Pages pathing.
-- `npm run deploy` uses `gh-pages` to publish the `dist/` directory.
-
-### CI/CD workflow
-`react.yml` defines a GitHub Actions workflow that:
-1. Triggers on pushes to `main`.
-2. Installs dependencies with Node 18.
-3. Builds the app.
-4. Deploys with `npm run deploy` using `gh-pages` and GitHub token.
-5. Exposes secrets (`GEO_API_KEY`, `WEATHER_API_KEY`) as environment variables for the deploy step.
-
-## Linting
-`eslint.config.js` enforces recommended ESLint and React rules, with React Hooks rules and React Refresh warnings for correct hot reload usage.
-
-## Assets
-- `src/assets/` contains `vite.svg` (default Vite asset).
-- `public/` is currently empty.
-
-## Notes and consistency observations
-- README mentions a `.env` file with `REACT_APP_WEATHER_API_KEY`. The frontend code does not reference this key and instead calls the backend API via `SERVER_API`.
-- Dependencies such as `express`, `dotenv`, `lottie-react-native`, and `react-select-async-paginate` are listed but are not referenced in the current `src/` code. They may be leftover, planned, or used elsewhere.
 
 ## End-to-end behavior summary
 1. User loads the app; previous city selection is restored from localStorage.

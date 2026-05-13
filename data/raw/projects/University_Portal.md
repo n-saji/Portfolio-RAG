@@ -53,22 +53,6 @@ Messages can be sent as:
 - Broadcasts to all connected clients.
 - Targeted messages to a specific account ID.
 
-## 3. Configuration and Environment
-
-Configuration is read from environment variables (usually via .env). Important variables:
-- POSTGRES_HOST
-- POSTGRES_PORT
-- POSTGRES_USER
-- POSTGRES_PASSWORD
-- POSTGRES_DB_NAME
-- PORT
-- SSL_MODE
-- FRONTEND_URL
-- MAIL_GUN_API_KEY
-- MAIL_GUN_DOMAIN
-
-The service builds a DB connection string and stores it in DB_URL for GORM.
-
 ## 4. Dependency Stack
 
 Core libraries:

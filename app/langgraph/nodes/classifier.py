@@ -22,7 +22,7 @@ class QueryClassification(BaseModel):
     )
     section: str = Field(
         description="If category is 'resume', specify the relevant section. Optional for other categories.",
-        enum = ["summary","skills","experience","education"],
+        enum = ["summary","skills","experience","education","additional_info"],
         default=""
     )
     tech: list[str] = Field(

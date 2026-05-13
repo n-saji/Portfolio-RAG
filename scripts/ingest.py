@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
@@ -122,6 +122,14 @@ def main():
                 "name": "Education",
             },
         },
+        {
+            "file": "data/raw/resume/additional_info.md",
+            "metadata": {
+                "type": "resume",
+                "section": "additional_info",
+                "name": "Additional Information",
+            },
+        }
     ]
 
     for item in resume_items:
@@ -249,14 +257,38 @@ def main():
 
     # 3. Chunk the Documents
     # We split the text into smaller pieces so the LLM can digest specific context
-    print(f"Loaded {len(documents)} document pages/files. Chunking...")
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500, 
-        chunk_overlap=50,
-        separators=["\n\n", "\n", " ", ""]
+    
+
+
+
+    header_splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=[
+            ("#", "h1"),
+        ],
+        strip_headers=False  # keep headers in chunk so context isn't lost
     )
-    chunks = text_splitter.split_documents(documents)
-    print(f"Created {len(chunks)} chunks.")
+
+    secondary_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,      
+        chunk_overlap=50,   
+    )
+
+    all_chunks = []
+
+    for doc in documents:
+        # First split by markdown headers
+        header_chunks = header_splitter.split_text(doc.page_content)
+        
+        # Then split oversized sections further
+        final_chunks = secondary_splitter.split_documents(header_chunks)
+        
+        # Re-apply your original metadata (source, type, name, tech, etc.)
+        for chunk in final_chunks:
+            chunk.metadata.update(doc.metadata)
+        
+        all_chunks.extend(final_chunks)
+
+    print(f"Created {len(all_chunks)} chunks.")
 
     # 4. Generate Embeddings and Upload to Pinecone
     print("Generating embeddings and pushing to Pinecone...")
@@ -264,7 +296,7 @@ def main():
     
     # This automatically embeds the chunks and upserts them to your Pinecone index
     PineconeVectorStore.from_documents(
-        documents=chunks,
+        documents=all_chunks,
         embedding=embeddings,
         index_name=index_name
     )
