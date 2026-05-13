@@ -14,7 +14,7 @@ redis_client = redis.from_url(REDIS_URL) if USE_REDIS else None
 def get_chat_history(session_id: str) -> str:
     """Fetches the formatted chat history for the prompt."""
     if not USE_REDIS or not redis_client:
-        return "No previous history."
+        return "No memory configured."
     
     key = f"session:{session_id}"
     
