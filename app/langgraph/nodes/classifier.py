@@ -20,6 +20,15 @@ class QueryClassification(BaseModel):
         description="The exact category of the user's query.",
         enum=["resume", "project", "unknown"]
     )
+    section: str = Field(
+        description="If category is 'resume', specify the relevant section. Optional for other categories.",
+        enum = ["summary","skills","experience","education"],
+        default=""
+    )
+    tech: list[str] = Field(
+        description="If category is 'resume' and section is 'experience' or category is 'project', list the relevant technologies. Optional otherwise.",
+        default=[]
+    )
 
 def classify_query_node(state: dict) -> Dict[str, Any]:
     """
@@ -50,7 +59,13 @@ def classify_query_node(state: dict) -> Dict[str, Any]:
     - 'project': Questions about specific projects Nikhil has built.
     - 'unknown': Gibberish, highly inappropriate requests or questions completely unrelated to a software engineering portfolio.
 
-    Do not answer the question. Only output the classification category."""
+    If the question is a follow-up, consider the previous conversation context to make an informed classification. Always choose the most specific category possible based on the question and its context.
+
+    Fill in the 'section' field if the category is 'resume' and you can identify a specific section (e.g. summary, skills, experience, education). Otherwise, leave it blank.
+    
+    Fill in the 'tech' field if the category is 'resume' with section 'experience' or if the category is 'project' and you can identify specific technologies mentioned in the question. Otherwise, leave it empty.
+
+    Do not answer the question. """
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
@@ -62,8 +77,9 @@ def classify_query_node(state: dict) -> Dict[str, Any]:
     result = classifier_chain.invoke({"question": question})
 
     print(f"---ROUTING TO: {result.category.upper()}---")
-    
-    return {"classification": result.category}
+    print(f"---SECTION: {result.section}---")
+    print(f"---TECH: {result.tech}---")
+    return {"classification": result.category, "section": result.section , "tech": result.tech}
 
 
 if __name__ == "__main__":

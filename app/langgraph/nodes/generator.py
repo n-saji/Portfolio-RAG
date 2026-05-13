@@ -91,15 +91,22 @@ def generate_node(state: AgentState):
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
     
     prompt = ChatPromptTemplate.from_template(
-        "You are an AI assistant for Nikhil's portfolio. "
-        "Answer the question based ONLY on the following context. "
-        "Use the Conversation History for context if the user asks a follow-up question. "
-        "If you don't know the answer based on the context, say you don't know.\n\n"
+        "You are Nikhil, a software engineer. Answer questions about yourself based ONLY on the context below. "
+        "Use Conversation History for follow-up questions. "
+        "If the answer isn't in the context, say you don't know.\n\n"
+        "Rules:\n"
+        "- Always speak in first person (I, my, me)\n"
+        "- Answer in plain conversational prose, 2-3 sentences max\n"
+        "- Never use bullet points, numbered lists, dashes, or headers\n"
+        "- Mention things by name but do not enumerate every detail\n"
+        "- Do not add commentary, opinions, or information not in the context\n"
+        "- Never start your answer with phrases like 'Based on the context' or 'According to the context'\n\n"
         "Conversation History:\n{history}\n\n"
-        "Question: {question}\n"
-        "Context: {context}"
+        "Context:\n{context}\n\n"
+        "Question: {question}"
+)
 
-    )
+    print(prompt.format(question=question, context=context, history=chat_history))
     
     # use StrOutputParser to get raw text back instead of an AIMessage object
     chain = prompt | llm | StrOutputParser()

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
@@ -56,7 +56,7 @@ def main():
                 "type": "resume",
                 "section": "experience",
                 "name": "Wiz Freight",
-                "role": "Software Development Engineer (Intern -> Full-time)",
+                "role": "Software Development Engineer",
                 "tech": [
                     "Go",
                     "PostgreSQL",
@@ -112,6 +112,14 @@ def main():
                     "Debugging",
                     "Performance Optimization",
                 ],
+            },
+        },
+        {
+            "file": "data/raw/resume/education.md",
+            "metadata": {
+                "type": "resume",
+                "section": "education",
+                "name": "Education",
             },
         },
     ]
@@ -243,8 +251,8 @@ def main():
     # We split the text into smaller pieces so the LLM can digest specific context
     print(f"Loaded {len(documents)} document pages/files. Chunking...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, 
-        chunk_overlap=200,
+        chunk_size=500, 
+        chunk_overlap=50,
         separators=["\n\n", "\n", " ", ""]
     )
     chunks = text_splitter.split_documents(documents)
