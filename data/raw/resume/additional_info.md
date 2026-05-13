@@ -1,7 +1,7 @@
 # Additional whereabouts
 
 ## Location
-- Currently I stay in Ney York, USA. I am open to remote work and relocation opportunities.
+- Currently I stay in New York, USA. I am open to remote work and relocation opportunities.
 
 ## Languages
 - English (fluent)

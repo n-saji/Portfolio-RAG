@@ -8,14 +8,16 @@ from app.services.memory_service import create_session_id
 
 load_dotenv()
 app = fastapi.FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=config.ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+
+# handled in lambda 
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=config.ORIGINS,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
     
-)
+# )
 
 @app.middleware("http")
 async def check_for_session_id(request: fastapi.Request, call_next):
@@ -28,7 +30,7 @@ async def check_for_session_id(request: fastapi.Request, call_next):
         request.state.session_id = session_id
     response = await call_next(request)
     if session_id:
-        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=86400)
+        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=86400, samesite="none", secure=True)
     return response
 
 
