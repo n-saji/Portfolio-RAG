@@ -1,3 +1,4 @@
+import os
 from app.langgraph.graph import AgentState
 from langchain.agents import AgentState
 
@@ -6,7 +7,7 @@ def fallback_node(state: AgentState):
     print("---FALLBACK TRIGGERED---")
     # This handles "unknown" classifications or inappropriate questions
 
-    if "confidence" in state and state["confidence"] < 0.55:
+    if "confidence" in state and state["confidence"] < os.getenv("CONFIDENCE_THRESHOLD", 0.25):
         fallback_message = (
             "I don't have enough specific information in my context to answer that accurately. "
             "You might want to reach out to Nikhil directly for more details!"
