@@ -48,3 +48,19 @@ def extract_last_user_message(history: str) -> str:
 		if line.startswith("User:"):
 			return line.replace("User:", "", 1).strip()
 	return ""
+
+def extract_last_n_conversations(history: str, n:int = 2) -> str:
+	if not history or history.strip() == "No previous history.":
+		return ""
+
+	lines = [line.strip() for line in history.split("\n") if line.strip()]
+	conversations = []
+	current_convo = []
+
+	for line in reversed(lines):
+		current_convo.append(line)
+		if line.startswith("User:") and len(conversations) < n:
+			conversations.append("\n".join(reversed(current_convo)))
+			current_convo = []
+
+	return "\n\n".join(reversed(conversations))

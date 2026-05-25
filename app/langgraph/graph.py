@@ -11,4 +11,5 @@ class AgentState(TypedDict):
     confidence: float
     retrieval_scores: List[float]
     retrieval_metadata: List[Dict[str, Any]]
+    is_follow_up: bool
 
