@@ -1,6 +1,6 @@
 # Portfolio RAG rebuild tracker
 
-Updated: 2026-10-16. Scope: this repository only. The portfolio site's fixed-response proxy remains a separate follow-up.
+Updated: 2026-10-16. Scope: this repository only. The portfolio site's chat proxy now forwards questions to this API.
 
 ## Phase 0 — Baseline and measurement
 - [x] Record architectural baseline: classifier → optional rewriter → embed → Pinecone → generator; 500-character chunks; hard filters; stale hardcoded source list.
@@ -38,6 +38,14 @@ Updated: 2026-10-16. Scope: this repository only. The portfolio site's fixed-res
 - [ ] Verify visitor p95 < 4 seconds across at least 100 representative warm/cold requests.
 - [ ] Record release identifier, index namespace, rollback target, and measured results below.
 
+## Phase 6 — Core-answer trust repair
+- [x] Reproduce the October 2026 live answers: an introduction incorrectly said the MS was still in progress, and total experience was inconsistently answered.
+- [x] Restore LangGraph orchestration with a reviewed-fact route and a retrieval/generation route; retain one model call for broader questions.
+- [x] Calculate total full-time experience from dated, non-overlapping roles and answer education/current-role questions from approved facts.
+- [x] Exclude the stale personal GitHub README from biography retrieval; prefer resume facts for education and employment.
+- [x] Add tests for total experience, employer tenure, completed degree, introduction, technology-specific uncertainty, and direct routing; offline retrieval remains 73/73.
+- [ ] Verify the repaired questions and a broader project answer against the deployed Lambda and portfolio website.
+
 ## Measurements
 | Run/date | Environment | n | p50 | p95 | Init | Retrieval | Model | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
@@ -46,4 +54,4 @@ Updated: 2026-10-16. Scope: this repository only. The portfolio site's fixed-res
 | Local review, 2026-10-16 | Local Python + remote model | 17 answer samples | — | — | — | — | ~1–3 s in manual samples | Not a visitor or Lambda measurement; all 73 retrieval questions hit in top 5 |
 
 ## Release notes
-Review PR: [#1 — Rebuild portfolio RAG around reviewed facts and faster retrieval](https://github.com/n-saji/Portfolio-RAG/pull/1), from `codex/portfolio-rag-rebuild` into `main`. The verified new namespace is `portfolio-20261016-headings` (291 chunks); `portfolio-20261016-reviewed` is the rollback namespace. The active pointer is packaged only after deployment. Lambda ran with 1024 MB memory and used at most about 262 MB in the 30-day sample. Cold initialization was significant, but warm duration also has long-tail misses; tune only after the new one-call route is live. The portfolio site's fixed-response proxy must be addressed in that separate repository to apply the new first-person voice to every visitor path.
+Review PR: [#1 — Rebuild portfolio RAG around reviewed facts and faster retrieval](https://github.com/n-saji/Portfolio-RAG/pull/1), from `codex/portfolio-rag-rebuild` into `main`. The verified namespace was `portfolio-20261016-headings` (291 chunks); `portfolio-20261016-reviewed` was the rollback namespace. Lambda ran with 1024 MB memory and used at most about 262 MB in the 30-day sample. Cold initialization was significant, but warm duration also had long-tail misses. The portfolio chat proxy has since been updated to forward every question to this API.

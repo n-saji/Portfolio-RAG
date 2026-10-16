@@ -52,7 +52,7 @@ def lexical(query: str, limit: int = 6) -> list[dict]:
 def aliases() -> list[tuple[str, str]]:
     facts, sources = load_sources()
     result = []
-    for item in facts["career"] + facts["featured_projects"]:
+    for item in facts["career"] + facts["profile"] + facts["featured_projects"]:
         for alias in [item["title"], *item.get("aliases", [])]:
             result.append((alias.lower(), item["id"]))
     for repo in sources["repositories"]:
@@ -68,6 +68,8 @@ def exact(query: str) -> list[dict]:
             entities.append(entity)
     if not entities and re.search(r"\b(?:your|my)\s+(?:job|role)\b|\bwhere (?:do|are) you work\b|\bwhat do you do for work\b", normalized):
         entities.append("holiday-channel-current")
+    if re.search(r"\b(?:master'?s?|graduat(?:e|ed|ion)|degree|education|university|college|studied|study)\b", normalized):
+        entities.append("education")
     if not entities:
         return []
     chunks, terms, _, _ = corpus()

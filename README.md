@@ -1,6 +1,12 @@
 # Portfolio RAG API
 
-A first-person, source-grounded portfolio chat service. The normal path uses local exact/lexical retrieval, optional Pinecone dense retrieval, and one OpenAI answer call. It runs as FastAPI on Lambda through Mangum.
+A first-person, source-grounded portfolio chat service. A LangGraph workflow routes common identity, education, and career questions to reviewed fact answers. Other questions use local exact/lexical retrieval, optional Pinecone dense retrieval, and one OpenAI answer call. It runs as FastAPI on Lambda through Mangum.
+
+## Answer workflow
+
+`app/langgraph/graph.py` runs `core_facts → retrieve → generate/fallback`. Core facts are drawn from `data/approved/facts.json`; total full-time experience is calculated from non-overlapping, month-level dates at request time. Internships are stated separately. This avoids asking a model to guess a duration or whether a completed degree is still in progress. The same reviewed role and education facts are included in the index for broader retrieval.
+
+For project and less common questions, the graph retrieves approved chunks and makes one model call. The personal GitHub profile README is excluded from indexed biography because it can lag the published resume. The assistant uses a short first-person uncertainty response when it cannot support an answer.
 
 ## Public knowledge and review
 
@@ -55,4 +61,4 @@ Keep the old namespace until the new release passes live checks. Do not publish 
 
 Stage timings are logged as `rag_timing` with local retrieval, embedding, Pinecone, model, and total milliseconds. Lambda `Init Duration`, duration, and memory require CloudWatch access. Tune Lambda memory only after those measurements; add provisioned concurrency only if cold starts remain a significant cause of misses.
 
-The separate portfolio website currently answers many questions from fixed third-person text before it calls this API. This repository does not change that proxy, so measure website and backend timing separately and treat the fixed responses as a follow-up integration task.
+The portfolio website forwards chat questions to this API. Measure website and backend timing separately when checking visitor latency.

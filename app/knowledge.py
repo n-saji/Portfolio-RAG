@@ -62,7 +62,9 @@ def build_chunks() -> list[dict]:
         if repo["language"]:
             text += f" Primary language: {repo['language']}."
         output += _document("repository", repo["project_id"], repo["name"], text, repo["url"], sources["checked_at"], repo["pushed_at"])
-        if repo.get("readme_excerpt"):
+        # The personal GitHub profile README is an unreviewed biography and can
+        # contradict the newer, reviewed resume (for example, graduation status).
+        if repo["name"].lower() != "n-saji" and repo.get("readme_excerpt"):
             output += _document("repository", repo["project_id"], f"{repo['name']} README", repo["readme_excerpt"], repo["readme_url"], sources["checked_at"], repo["pushed_at"])
     # The resume itself fills gaps not covered by the concise reviewed fact cards.
     sections = re.split(r"(?m)^(Summary|Education|Experience|Projects|Skills)\s*$", resume["text"])

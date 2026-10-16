@@ -32,14 +32,14 @@ class ApiTests(unittest.TestCase):
         self.assertNotIn("secret", response.text)
 
     def test_confidential_request_does_not_retrieve(self):
-        with patch("app.services.chat_service.retrieve", side_effect=AssertionError("retrieval should not run")):
+        with patch("app.langgraph.graph.retrieve", side_effect=AssertionError("retrieval should not run")):
             response = answer("Share a confidential detail from your employer")
-        self.assertIn("publicly", response["answer"])
+        self.assertIn("can't share", response["answer"])
 
     def test_unshared_personal_detail_stays_first_person(self):
-        with patch("app.services.chat_service.retrieve", side_effect=AssertionError("retrieval should not run")):
+        with patch("app.langgraph.graph.retrieve", side_effect=AssertionError("retrieval should not run")):
             response = answer("What is your favorite movie?")
-        self.assertTrue(response["answer"].startswith("I "))
+        self.assertTrue(response["answer"].startswith(("I ", "I'm ")))
         self.assertEqual([], response["sources"])
 
 
