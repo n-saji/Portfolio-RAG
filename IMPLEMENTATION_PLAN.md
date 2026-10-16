@@ -44,7 +44,9 @@ Updated: 2026-10-16. Scope: this repository only. The portfolio site's chat prox
 - [x] Calculate total full-time experience from dated, non-overlapping roles and answer education/current-role questions from approved facts.
 - [x] Exclude the stale personal GitHub README from biography retrieval; prefer resume facts for education and employment.
 - [x] Add tests for total experience, employer tenure, completed degree, introduction, technology-specific uncertainty, and direct routing; offline retrieval remains 73/73.
-- [ ] Verify the repaired questions and a broader project answer against the deployed Lambda and portfolio website.
+- [x] Verify the repaired questions and a broader project answer against the deployed Lambda and portfolio website.
+- [x] Exclude prior assistant replies from model context so an old wrong answer cannot become evidence in a follow-up.
+- [x] Set Lambda's root log level explicitly so retrieval and model stage timings appear in CloudWatch.
 
 ## Measurements
 | Run/date | Environment | n | p50 | p95 | Init | Retrieval | Model | Notes |
@@ -52,6 +54,9 @@ Updated: 2026-10-16. Scope: this repository only. The portfolio site's chat prox
 | Baseline, prior 30 days to 2026-10-16 | CloudWatch Lambda REPORT | 21 | 1.21 s duration | 17.83 s duration | 10 cold starts; mean 3.51 s, p95 4.53 s | — | — | Mixed routes and health checks; only 21 requests, so this does not meet the 100-request acceptance sample |
 | Warm subset, prior 30 days | CloudWatch Lambda REPORT | 11 | 1.21 s duration | 9.12 s duration | — | — | — | Includes non-chat requests; inspect after release |
 | Local review, 2026-10-16 | Local Python + remote model | 17 answer samples | — | — | — | — | ~1–3 s in manual samples | Not a visitor or Lambda measurement; all 73 retrieval questions hit in top 5 |
+| Trust repair, 2026-10-16 | Live Lambda | 5 sample questions | — | — | 5.66 s for first cold request | Core answers 8–98 ms warm Lambda duration | SyncBeat request 7.16 s total Lambda duration | Functional smoke check only; below the required 100-request latency sample |
 
 ## Release notes
 Review PR: [#1 — Rebuild portfolio RAG around reviewed facts and faster retrieval](https://github.com/n-saji/Portfolio-RAG/pull/1), from `codex/portfolio-rag-rebuild` into `main`. The verified namespace was `portfolio-20261016-headings` (291 chunks); `portfolio-20261016-reviewed` was the rollback namespace. Lambda ran with 1024 MB memory and used at most about 262 MB in the 30-day sample. Cold initialization was significant, but warm duration also had long-tail misses. The portfolio chat proxy has since been updated to forward every question to this API.
+
+Trust repair: deployed release `185d1bc` with a new 286-vector namespace, `portfolio-185d1bc669cc06b9977a09255e432cf963825c6e`; the prior `portfolio-550f1f39bbf15ef869d30b2045816f59e1df1053` namespace and prior image remain available for rollback. The live Lambda and browser chat both returned the corrected experience, introduction, and graduation answers. Project generation still had a 7.16 s Lambda request, so the original 4 s p95 target remains open.

@@ -65,7 +65,10 @@ def _generate(state: AgentState) -> AgentState:
         f"Current-role evidence is dated {source_date}; state that date if claiming it is current."
         if current_job and source_is_stale(source_date) else ""
     )
-    history_text = "\n".join(f"{turn['role']}: {turn['content']}" for turn in state.get("history", [])[-6:])
+    # Prior assistant replies may themselves have been wrong. Keep only user
+    # questions for reference resolution; never feed old answers back as facts.
+    previous_questions = [turn["content"] for turn in state.get("history", []) if turn["role"] == "user"][-3:]
+    history_text = "\n".join(f"Earlier question: {content}" for content in previous_questions)
     evidence = "\n\n".join(lines)
     user_text = (
         f"Authoritative education fact: {education['text']}\n{stale_notice}\n\n"

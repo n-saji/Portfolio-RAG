@@ -6,7 +6,7 @@ A first-person, source-grounded portfolio chat service. A LangGraph workflow rou
 
 `app/langgraph/graph.py` runs `core_facts → retrieve → generate/fallback`. Core facts are drawn from `data/approved/facts.json`; total full-time experience is calculated from non-overlapping, month-level dates at request time. Internships are stated separately. This avoids asking a model to guess a duration or whether a completed degree is still in progress. The same reviewed role and education facts are included in the index for broader retrieval.
 
-For project and less common questions, the graph retrieves approved chunks and makes one model call. The personal GitHub profile README is excluded from indexed biography because it can lag the published resume. The assistant uses a short first-person uncertainty response when it cannot support an answer.
+For project and less common questions, the graph retrieves approved chunks and makes one model call. Earlier user questions can resolve follow-ups; earlier assistant replies are excluded so a mistaken answer cannot become evidence. The personal GitHub profile README is excluded from indexed biography because it can lag the published resume. The assistant uses a short first-person uncertainty response when it cannot support an answer.
 
 ## Public knowledge and review
 

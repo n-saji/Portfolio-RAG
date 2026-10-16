@@ -9,6 +9,7 @@ from app.api.routes import router
 from app.services.memory_service import create_session_id
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
+logging.getLogger().setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 app = FastAPI(title="Portfolio RAG API")
 
 

@@ -52,6 +52,17 @@ class CoreFactsTests(unittest.TestCase):
         self.assertFalse(any(doc["title"] == "n-saji README" for doc in chunks))
         self.assertTrue(any(doc["entity"] == "education" and "February 2026" in doc["text"] for doc in chunks))
 
+    def test_old_assistant_claims_are_not_fed_back_to_model(self):
+        with patch("app.langgraph.graph.openai_client") as client:
+            client.return_value.responses.create.return_value.output_text = "I built SyncBeat."
+            answer("Tell me about SyncBeat", [
+                {"role": "user", "content": "What did you build?"},
+                {"role": "assistant", "content": "I am currently pursuing a master's degree."},
+            ])
+            prompt = client.return_value.responses.create.call_args.kwargs["input"]
+            self.assertNotIn("currently pursuing", prompt)
+            self.assertIn("Earlier question: What did you build?", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()
