@@ -1,57 +1,59 @@
+"""Optional, bounded session memory. All failures degrade to stateless chat."""
+
+import json
+import logging
 import os
-import redis
-from dotenv import load_dotenv
 import uuid
+from functools import lru_cache
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
-
-USE_REDIS = os.getenv("USE_REDIS_MEMORY", "false").lower() == "true"
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-
-redis_client = redis.from_url(REDIS_URL) if USE_REDIS else None
-
-def get_chat_history(session_id: str) -> str:
-    """Fetches the formatted chat history for the prompt."""
-    if not USE_REDIS or not redis_client:
-        return "No memory configured."
-    
-    key = f"session:{session_id}"
-    
-    # Fetch all messages in the current bounded list
-    messages = redis_client.lrange(key, 0, -1)
-    
-    if not messages:
-        return "No previous history."
-        
-    return "\n".join([msg.decode("utf-8") for msg in messages])
-
-def save_exchange(session_id: str, human_query: str, ai_response: str):
-    """Saves the Q&A pair and strictly enforces the 5-conversation limit."""
-    if not USE_REDIS or not redis_client:
-        return
-    if not session_id:
-        print("Warning: No session ID provided, skipping memory save.")
-        return
-        
-    key = f"session:{session_id}"
-    
-    redis_client.rpush(key, f"User: {human_query}")
-    redis_client.rpush(key, f"AI: {ai_response}")
-    
-    # Keep only the last 10 elements (5 exchanges)
-    redis_client.ltrim(key, -10, -1)
-    
-    # TTL for 24 hours
-    redis_client.expire(key, 86400)
-
-def clear_session_history(session_id: str):
-    """Clears the entire chat history for a given session."""
-    if not USE_REDIS or not redis_client:
-        return
-    key = f"session:{session_id}"
-    redis_client.delete(key)
 
 def create_session_id() -> str:
-    """Creates a unique session ID. In production, consider using UUIDs."""
     return str(uuid.uuid4())
+
+
+@lru_cache(maxsize=1)
+def _client():
+    if os.getenv("USE_REDIS_MEMORY", "false").lower() != "true":
+        return None
+    try:
+        import redis
+
+        return redis.Redis.from_url(
+            os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+            socket_connect_timeout=0.35,
+            socket_timeout=0.35,
+            decode_responses=True,
+        )
+    except Exception:
+        logger.exception("redis initialization failed")
+        return None
+
+
+def get_turns(session_id: str | None) -> list[dict[str, str]]:
+    client = _client()
+    if client is None or not session_id:
+        return []
+    try:
+        turns = [json.loads(item) for item in client.lrange(f"session:{session_id}", -8, -1)]
+        return [t for t in turns if t.get("role") in {"user", "assistant"} and isinstance(t.get("content"), str)]
+    except Exception:
+        logger.warning("redis read failed", exc_info=True)
+        return []
+
+
+def save_exchange(session_id: str | None, human_query: str, ai_response: str) -> None:
+    client = _client()
+    if client is None or not session_id:
+        return
+    try:
+        key = f"session:{session_id}"
+        pipe = client.pipeline()
+        pipe.rpush(key, json.dumps({"role": "user", "content": human_query}))
+        pipe.rpush(key, json.dumps({"role": "assistant", "content": ai_response}))
+        pipe.ltrim(key, -8, -1)
+        pipe.expire(key, 86400)
+        pipe.execute()
+    except Exception:
+        logger.warning("redis write failed", exc_info=True)
