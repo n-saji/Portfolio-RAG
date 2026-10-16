@@ -1,0 +1,19 @@
+[
+  {"question": "What is your current job?", "entity": "holiday-channel-current"},
+  {"question": "What did you build at Holiday Channel?", "entity": "holiday-channel-current"},
+  {"question": "What did you do during your Holiday Channel internship?", "entity": "holiday-channel-intern"},
+  {"question": "How did you improve quote turnaround at Wiz Freight?", "entity": "wiz-freight"},
+  {"question": "What was your role at Cognizant?", "entity": "cognizant"},
+  {"question": "What did you do at Prograd?", "entity": "prograd"},
+  {"question": "What did you do at HighRadius?", "entity": "highradius"},
+  {"question": "Where did you study computer science?", "entity": "education"},
+  {"question": "What technologies do you use?", "entity": "skills"},
+  {"question": "How do people contact you?", "entity": "contact"},
+  {"question": "How does SyncBeat synchronize playback?", "entity": "syncbeat"},
+  {"question": "How does Expensely handle budgets?", "entity": "expensely"},
+  {"question": "What is Job Tracker built with?", "entity": "job-tracker"},
+  {"question": "Tell me about Talky Space", "entity": "talky-space"},
+  {"question": "What is Gatekeeper?", "entity": "gatekeeper"},
+  {"question": "What experiments did you do in Neural Networks?", "entity": "neural-networks"},
+  {"question": "How does your Portfolio RAG Agent work?", "entity": "portfolio-rag"}
+]
