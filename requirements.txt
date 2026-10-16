@@ -1,10 +1,28 @@
-fastapi>=0.115,<1
-mangum>=0.19,<1
-openai>=2,<3
-pinecone>=7,<9
-redis>=5,<7
-pypdf>=6,<7
-tiktoken>=0.9,<1
-langgraph>=1,<2
-python-dotenv>=1,<2
-uvicorn>=0.34,<1
+# API & Core
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+mangum
+
+# AI Orchestration
+langchain
+langchain-core
+langgraph
+langchain-openai
+
+# Data Ingestion & Processing
+langchain-community
+langchain-text-splitters
+pypdf
+tiktoken
+PyGithub
+
+# Vector Database & Memory
+pinecone-client
+langchain-pinecone
+redis
+
+# Optional: Evaluation
+ragas

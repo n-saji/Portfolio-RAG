@@ -1,49 +1,47 @@
-import logging
 import os
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 
 from app.api.schemas import ChatRequest
-from app.services.chat_service import answer
-from app.services.memory_service import get_turns, save_exchange
+from app.langgraph.edges import build_graph
+from app.services.memory_service import save_exchange
+from app.services.rag_service import build_portfolio_rag_chain
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
-def _handle(payload: ChatRequest, session_id: str | None) -> dict:
-    history = [turn.model_dump() for turn in payload.history] or get_turns(session_id)
-    try:
-        result = answer(payload.question, history)
-    except Exception:
-        logger.exception("chat request failed")
-        raise HTTPException(status_code=503, detail="Portfolio chat is temporarily unavailable")
-    save_exchange(session_id, payload.question, result["answer"])
-    return result
-
+def _is_truthy(value: str | None) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 @router.post("/chat")
-def chat(payload: ChatRequest):
-    result = _handle(payload, payload.session_id)
-    return {"answer": result["answer"], "sources": result.get("sources", [])}
-
+async def chat(request: ChatRequest):
+    chain = build_portfolio_rag_chain()
+    response = chain.invoke({"input": request.question})
+    return {"answer": response["answer"]}
 
 @router.post("/advanced-chat")
-def advanced_chat(request: Request, payload: ChatRequest):
+async def advanced_chat(request: Request, payload: ChatRequest):
+    if not payload.question:
+        return {"answer": "Please provide a valid question."}
     session_id = getattr(request.state, "session_id", None) or payload.session_id
-    result = _handle(payload, session_id)
-    documents = result["documents"]
-    kind = documents[0]["kind"] if documents else "unknown"
-    classification = "project" if kind in {"project", "repository"} else "resume" if kind in {"career", "profile", "resume"} else "unknown"
+    agent_app = build_graph()
+    inputs = {"question": payload.question, "session_id": session_id}
+    result = agent_app.invoke(inputs)
+
+    save_exchange(session_id=session_id, human_query=payload.question, ai_response=result["answer"])
+
     response = {
         "answer": result["answer"],
-        "classification": classification,
-        "debug_docs_retrieved": len(documents),
-        "sources": result.get("sources", []),
+        "classification": result.get("classification"),
+        "debug_docs_retrieved": len(result.get("documents", [])),
     }
-    if os.getenv("DEBUG_RAG", "false").lower() in {"1", "true", "yes"}:
+
+    if _is_truthy(os.getenv("DEBUG_RAG")):
         response["debug_retrieval"] = {
-            "metadata": [{key: doc[key] for key in ("id", "kind", "entity", "url")} for doc in documents],
-            "timings_ms": result["timings"],
+            "scores": result.get("retrieval_scores", []),
+            "metadata": result.get("retrieval_metadata", []),
         }
+
     return response

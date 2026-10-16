@@ -1,64 +1,126 @@
-# Portfolio RAG API
+# Portfolio RAG Agent
 
-A first-person, source-grounded portfolio chat service. A LangGraph workflow routes common identity, education, and career questions to reviewed fact answers. Other questions use local exact/lexical retrieval, optional Pinecone dense retrieval, and one OpenAI answer call. It runs as FastAPI on Lambda through Mangum.
+A retrieval-augmented generation (RAG) agent that answers questions about my portfolio using grounded context from my resume and project writeups. It ships with a simple RAG endpoint and an advanced LangGraph pipeline with classification, retrieval filtering, and optional session memory.
 
-## Answer workflow
+## Highlights
 
-`app/langgraph/graph.py` runs `core_facts → retrieve → generate/fallback`. Core facts are drawn from `data/approved/facts.json`; total full-time experience is calculated from non-overlapping, month-level dates at request time. Internships are stated separately. This avoids asking a model to guess a duration or whether a completed degree is still in progress. The same reviewed role and education facts are included in the index for broader retrieval.
+- FastAPI API with two chat modes (simple RAG and advanced agent).
+- LangGraph routing for resume vs project questions.
+- Pinecone vector store with OpenAI embeddings.
+- Optional Redis-backed chat memory for follow-ups.
+- Clean ingestion pipeline for resume and project sources.
 
-For project and less common questions, the graph retrieves approved chunks and makes one model call. Earlier user questions can resolve follow-ups; earlier assistant replies are excluded so a mistaken answer cannot become evidence. The personal GitHub profile README is excluded from indexed biography because it can lag the published resume. The assistant uses a short first-person uncertainty response when it cannot support an answer.
+## Architecture (high level)
 
-## Public knowledge and review
+1. Ingest markdown resume and project files into Pinecone with metadata.
+2. Classify the incoming question as resume, project, or unknown.
+3. Retrieve relevant chunks using metadata filters and score thresholds.
+4. Generate a grounded response with optional conversation history.
+5. Fallback when the query is out of scope or confidence is low.
 
-- `data/approved/facts.json` contains reviewed public career, profile, and featured-project facts. The published resume is primary for employment and education; portfolio copy is primary for featured project descriptions.
-- `data/approved/sources.json` holds the published resume text, SHA-256 and source date, plus metadata for all original public repositories from `n-saji` (forks excluded). Related repositories share a project ID.
-- The Monday source-refresh workflow compares the published resume and GitHub metadata and opens a **review PR** when they change. Reviewers must update `facts.json` if a title, date, or achievement changed before merging. A merge triggers reindexing and Lambda deployment.
-- LinkedIn is an optional, manually supplied cross-check. Put a personal export ZIP under `data/private/`, run `python scripts/import_linkedin.py data/private/<export>.zip`, review `data/candidates/linkedin.json`, and update `facts.json` in a PR. Raw exports and candidates are ignored by Git and are never indexed. Only public career fields are extracted; messages and contacts are skipped.
-- At request time, the service reads only the approved packaged snapshot. It never fetches LinkedIn, GitHub, or the PDF for a visitor. When the resume source date is over 90 days old, current-role answers are qualified with its date.
+Entry point: [app/main.py](app/main.py)
 
-## Local setup
+## Data sources
 
-Use Python 3.12 or newer:
+Ingestion uses markdown files in:
 
-```bash
-python -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-PYTHONPATH=. .venv/bin/python scripts/build_chunks.py
-PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -v
-OPENAI_API_KEY='' PINECONE_API_KEY='' PYTHONPATH=. .venv/bin/python scripts/evaluate.py
-.venv/bin/python -m uvicorn app.main:app --port 8000
-```
+- [data/raw/resume](data/raw/resume)
+- [data/raw/projects](data/raw/projects)
 
-Lambda uses Mangum while `uvicorn` serves the API locally. `python-dotenv` loads a local `.env` when present. A virtual environment from the former setup may point to a missing interpreter; recreate it if necessary.
-
-Required for chat: `OPENAI_API_KEY`. Dense search additionally uses `PINECONE_API_KEY`, `PINECONE_INDEX_NAME`, and `PINECONE_DIMENSIONS` (default `1024`, matching the existing `portfolio-rag` index). Without Pinecone, exact and lexical retrieval still work. Optional: `ANSWER_MODEL` (default `gpt-6-luna`), `EMBEDDING_MODEL` (default `text-embedding-3-small`), `USE_REDIS_MEMORY`, `REDIS_URL`, and `DEBUG_RAG`.
+Update these files to refresh the knowledge base, then re-run ingestion.
 
 ## API
 
-Both `POST /api/v1/chat` and `POST /api/v1/advanced-chat` accept:
+Base path: `/api/v1`
+
+Endpoints:
+
+- `POST /chat` simple RAG chain
+- `POST /advanced-chat` full agent pipeline with memory and debug options
+
+Request body:
 
 ```json
 {
-  "question": "What are you building at your current job?",
-  "session_id": "optional-session-id",
-  "history": [{"role": "user", "content": "Tell me about SyncBeat"}]
+  "question": "What backend technologies did you use at Wiz Freight?",
+  "session_id": "optional-session-id"
 }
 ```
 
-`history` is optional and limited to eight turns; `/advanced-chat` also uses an optional Redis-backed cookie session. Both routes return `answer` and `sources`; the advanced route preserves `classification` and `debug_docs_retrieved`. Only `DEBUG_RAG=true` adds diagnostic metadata and timings. Health checks use `GET /health`.
+Example curl:
 
-## Refresh, deploy, and rollback
+```bash
+curl -X POST http://localhost:8000/api/v1/advanced-chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"What projects use Go?"}'
+```
 
-1. Review the source-update PR, especially the current role and any resume/LinkedIn conflicts. Merge only approved public facts.
-2. On `main`, CI runs unit tests and the offline recall@5 gate, builds token-sized chunks, stages them in a new Pinecone namespace, probes the namespace, writes an active pointer into the Docker image, then deploys that image to Lambda. Configure GitHub secrets `OPENAI_API_KEY`, `PINECONE_API_KEY`, and `PINECONE_INDEX_NAME` in addition to the existing AWS credentials. GitHub Actions must be allowed to create pull requests for the scheduled review workflow.
-3. To stage manually, run `PYTHONPATH=. python scripts/build_chunks.py` then `PYTHONPATH=. python scripts/build_index.py --namespace portfolio-<version>`. Add `--activate` only after verification. The active pointer records the prior namespace. Roll back by redeploying the prior image or restoring that namespace in the pointer and redeploying.
+## Quickstart (local)
 
-Keep the old namespace until the new release passes live checks. Do not publish `data/private/` or `data/candidates/`.
+1. Create a virtual environment and install dependencies:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+2. Set the required environment variables (see below). dotenv is supported.
+3. Ingest data:
+   ```bash
+   python scripts/ingest.py
+   ```
+4. Run the API:
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
 
-## Quality and latency
+## Environment variables
 
-`scripts/evaluate.py` checks retrieval recall@5 across reviewed career/project questions and every original public repository. Use `--answers` to create a private answer-review file for manual checking of unsupported claims. Release targets are recall@5 ≥ 90%, no unsupported claims in the reviewed answer set, and visitor p95 below four seconds across at least 100 representative warm/cold requests.
+Set the following environment variables:
 
-Stage timings are logged as `rag_timing` with local retrieval, embedding, Pinecone, model, and total milliseconds. Lambda `Init Duration`, duration, and memory require CloudWatch access. Tune Lambda memory only after those measurements; add provisioned concurrency only if cold starts remain a significant cause of misses.
+```bash
+# OpenAI
+OPENAI_API_KEY=...
 
-The portfolio website forwards chat questions to this API. Measure website and backend timing separately when checking visitor latency.
+# Pinecone
+PINECONE_API_KEY=...
+PINECONE_INDEX_NAME=...
+PINECONE_DIMENSIONS=1536
+
+# Retrieval thresholds
+MIN_SCORE_THRESHOLD=0.2
+CONFIDENCE_THRESHOLD=0.25
+
+# Debug
+DEBUG_RAG=false
+
+# Optional Redis memory
+USE_REDIS_MEMORY=false
+REDIS_URL=redis://localhost:6379/0
+```
+
+Notes:
+
+- `MIN_SCORE_THRESHOLD` filters individual matches; `CONFIDENCE_THRESHOLD` gates the final answer.
+- When `DEBUG_RAG=true`, `/advanced-chat` includes retrieval scores and metadata.
+
+## Deployment
+
+This repo includes an AWS Lambda-friendly Dockerfile that uses Mangum to serve FastAPI:
+
+- [Dockerfile](Dockerfile)
+- Lambda handler: `app.main.handler`
+
+If you want local Docker testing, build the image and run it with your preferred Lambda runtime tooling.
+
+## Project structure (key files)
+
+- [app/api/routes.py](app/api/routes.py) request routing and API responses
+- [app/langgraph](app/langgraph) LangGraph nodes and edges
+- [app/services/rag_service.py](app/services/rag_service.py) simple RAG chain
+- [scripts/ingest.py](scripts/ingest.py) ingestion pipeline
+
+## Roadmap ideas
+
+- Add tech-stack filtering for project queries at ingestion time.
+- Improve prompt grounding and add citations in responses.
+- Add automated evaluation with `ragas`.

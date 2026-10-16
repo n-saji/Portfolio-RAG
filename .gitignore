@@ -4,7 +4,3 @@ __pycache__/
 notes.txt
 .DS_Store
 /data/raw
-data/private/
-data/candidates/
-*.linkedin.zip
-data/approved/chunks.json
