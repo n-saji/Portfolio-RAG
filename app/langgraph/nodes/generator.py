@@ -58,7 +58,7 @@ def _evidence(state: AgentState) -> tuple[str, bool]:
 
 
 def generate_node(state: AgentState):
-    history = get_chat_history(state.get("session_id"))
+    history = get_chat_history(state.get("session_id")) if state.get("used_history") else ""
     question_lower = state["question"].lower()
     skill_duration = bool(re.search(r"how long|how many years|years? of|experience with", question_lower))
     if skill_duration and any(tech in question_lower for tech in TECHNOLOGIES):

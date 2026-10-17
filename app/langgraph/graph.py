@@ -13,6 +13,7 @@ class AgentState(TypedDict):
     retrieval_scores: List[float]
     retrieval_metadata: List[Dict[str, Any]]
     is_follow_up: bool
+    used_history: bool
     section: str
     tech: List[str]
 

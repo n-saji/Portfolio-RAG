@@ -28,6 +28,13 @@ class QueryClassification(BaseModel):
         default=False
     )
 
+
+def _standalone_project_question(question: str) -> bool:
+    normalized = question.lower()
+    return any(
+        phrase in normalized for phrase in ("latest project", "newest project", "most recent project")
+    ) and not any(employer in normalized for employer in ("actfore", "holiday channel", "wiz freight"))
+
 def classify_query_node(state: dict) -> Dict[str, Any]:
     """
     Analyzes the user's question and routes it to the correct workflow.
@@ -69,12 +76,13 @@ def classify_query_node(state: dict) -> Dict[str, Any]:
     print(f"---ROUTING TO: {result.category.upper()}---")
     print(f"---SECTION: {result.section}---")
     print(f"---TECH: {result.tech}---")
-    print(f"---IS FOLLOW-UP: {result.is_follow_up}---")
+    is_follow_up = bool(history_text and result.is_follow_up and not _standalone_project_question(question))
+    print(f"---IS FOLLOW-UP: {is_follow_up}---")
     return {
         "classification": result.category,
         "section": result.section,
         "tech": result.tech,
-        "is_follow_up": bool(history_text and result.is_follow_up),
+        "is_follow_up": is_follow_up,
     }
 
 

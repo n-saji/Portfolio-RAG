@@ -14,7 +14,7 @@ def rewrite_query_node(state: AgentState) -> AgentState:
     history = get_chat_history(session_id)
 
     if not history:
-        return {"retrieval_query": question, "is_follow_up": False}
+        return {"retrieval_query": question, "is_follow_up": False, "used_history": False}
 
     history_text = extract_last_n_conversations(history, n = 2)
 
@@ -33,4 +33,4 @@ def rewrite_query_node(state: AgentState) -> AgentState:
     print(f"---REWRITER: '{question}' → '{rewritten}'---")
 
     # Preserve the user's wording for the answer and use the rewrite only for retrieval.
-    return {"retrieval_query": rewritten[:500], "is_follow_up": False}
+    return {"retrieval_query": rewritten[:500], "is_follow_up": False, "used_history": True}

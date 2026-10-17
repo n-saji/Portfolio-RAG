@@ -5,6 +5,7 @@ import tiktoken
 from langchain_core.documents import Document
 
 from app.langgraph.edges import route_from_classifier, route_from_retriever
+from app.langgraph.nodes.classifier import _standalone_project_question
 from app.langgraph.nodes.generator import generate_node
 from app.langgraph.nodes.retriever import _rerank
 from app.services import memory_service
@@ -26,6 +27,8 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(route_from_classifier({"classification": "unknown", "is_follow_up": True}), "fallback")
         self.assertEqual(route_from_retriever({"documents": [Document(page_content="fact")]}), "generator")
         self.assertEqual(route_from_retriever({"documents": []}), "fallback")
+        self.assertTrue(_standalone_project_question("What about your latest project?"))
+        self.assertFalse(_standalone_project_question("What is your latest project at Holiday Channel?"))
 
     def test_history_reads_structured_and_legacy_messages(self):
         previous = memory_service.redis_client
