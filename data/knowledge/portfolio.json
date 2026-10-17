@@ -1,0 +1,86 @@
+{
+  "source_url": "https://www.nikhilsaji.dev/",
+  "reviewed_at": "2026-10-17",
+  "about": "I'm a software engineer with 2+ years of production experience building distributed systems and backend services. I work with Go, Python, Java, PostgreSQL, and AWS, and enjoy owning features from design through deployment. I'm also building AI agents and LLM experiences that turn complex systems into useful products.",
+  "experiences": [
+    {
+      "position": "Data Analyst",
+      "company": "ACTFORE",
+      "period": "2026 - Present",
+      "description": "Data Analyst since September 2026. Further details about this role will be shared when available."
+    },
+    {
+      "position": "Software Engineer",
+      "company": "Holiday Channel",
+      "period": "2026 - Present",
+      "description": "Built a serverless Lambda classifier that tags 30,000+ recipes and automated weekly ingestion of 1,000+ media assets into S3 and PostgreSQL."
+    },
+    {
+      "position": "Software Engineer Intern",
+      "company": "Holiday Channel",
+      "period": "2025",
+      "description": "Reduced recipe API latency from 500ms to 150ms with Redis caching and pagination; supported content and landing page operations."
+    },
+    {
+      "position": "Software Development Engineer",
+      "company": "Wiz Freight",
+      "period": "2022 - 2024",
+      "description": "Built a logistics pricing engine that reduced quote turnaround from four hours to under one minute and cut Go dashboard API p99 latency from 3s to 600ms."
+    },
+    {
+      "position": "Programmer Analyst Intern",
+      "company": "Cognizant",
+      "period": "2022",
+      "description": "Analyzed datasets and supported process improvements through data-driven reporting."
+    },
+    {
+      "position": "Developer Intern",
+      "company": "Prograd",
+      "period": "2021",
+      "description": "Mentored peers, resolved code issues, and collaborated on application performance improvements."
+    },
+    {
+      "position": "Data Analyst Intern",
+      "company": "HighRadius",
+      "period": "2021",
+      "description": "Built a Python-based invoice application and worked on deadline prediction using machine learning."
+    }
+  ],
+  "projects": [
+    {
+      "name": "SyncBeat",
+      "url": "https://github.com/n-saji/syncbeat-mainframe",
+      "description": "Distributed group-listening platform with drift-corrected synchronized playback, CloudFront-signed S3 streaming, and event-driven workers using SNS and SQS."
+    },
+    {
+      "name": "Portfolio RAG Agent",
+      "url": "https://www.nikhilsaji.dev/#agent",
+      "description": "Stateful conversational agent with LangGraph orchestration, Pinecone semantic retrieval, and Redis-backed session memory. Use the chat on this site to try it."
+    },
+    {
+      "name": "Expensely",
+      "url": "https://github.com/n-saji/Expensely",
+      "description": "Expense platform with OAuth2/JWT authentication, budgeting, WebSocket alerts, and multi-device session management."
+    },
+    {
+      "name": "Job Tracker",
+      "url": "https://github.com/n-saji/Job-tracker",
+      "description": "Job discovery pipeline that collects listings, filters eligibility, and uses an LLM to score opportunities."
+    },
+    {
+      "name": "Talky Space",
+      "url": "https://github.com/n-saji/Talky-Space-BE",
+      "description": "Modern real-time chat application for connecting with friends and colleagues."
+    },
+    {
+      "name": "Gatekeeper",
+      "url": "https://github.com/n-saji/gatekeeper-be",
+      "description": "Authentication system with role-based access control and secure session management."
+    },
+    {
+      "name": "Neural Networks",
+      "url": "https://github.com/n-saji/Neural-Networks",
+      "description": "Custom neural architectures and VGG-13 image classification experiments."
+    }
+  ]
+}

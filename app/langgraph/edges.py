@@ -1,5 +1,3 @@
-import os
-
 from langgraph.graph import StateGraph, START, END
 from app.langgraph.graph import AgentState
 from app.langgraph.nodes.classifier import classify_query_node
@@ -11,26 +9,15 @@ from app.langgraph.nodes.rewriter import rewrite_query_node
 # --- Conditional Edge Functions ---
 def route_from_classifier(state: AgentState):
     """Routes to fallback if unknown, otherwise proceeds to retrieval."""
-    if state["is_follow_up"]:
-        print("---FOLLOW-UP QUESTION DETECTED---")
-        return "rewriter"
-    
     if state["classification"] == "unknown":
         return "fallback"
-    
+    if state.get("is_follow_up"):
+        return "rewriter"
     return "retriever"
 
 def route_from_retriever(state: AgentState):
-    """If the retriever found nothing, fallback. Otherwise, generate."""
-
-    CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", 0.25))
+    """Only missing evidence triggers fallback; scores are ranking signals."""
     if not state["documents"]:
-        print("---NO DOCS FOUND: ROUTING TO FALLBACK---")
-        return "fallback"
-    
-    current_confidence = state.get("confidence", 0.0)
-    if current_confidence < CONFIDENCE_THRESHOLD:
-        print(f"---LOW CONFIDENCE ({current_confidence:.4f} < {CONFIDENCE_THRESHOLD}): ROUTING TO FALLBACK---")
         return "fallback"
     return "generator"
 
@@ -60,6 +47,6 @@ def build_graph():
     
     workflow.add_edge("generator", END)
     workflow.add_edge("fallback", END)
-    workflow.add_edge("rewriter", "classifier")  # After rewriting, we want to try classification again
+    workflow.add_edge("rewriter", "retriever")
     app = workflow.compile()
     return app

@@ -1,0 +1,14 @@
+[
+  {"question": "Where do you work now?", "classification": "resume", "expected": ["profile-current-roles"]},
+  {"question": "What do you do at ACTFORE?", "classification": "resume", "expected": ["profile-current-roles"]},
+  {"question": "How many years of experience do you have?", "classification": "resume", "expected": ["profile-experience-duration"]},
+  {"question": "What did you build at Holiday Channel?", "classification": "resume", "expected": ["profile-current-roles", "profile-holiday-intern"]},
+  {"question": "What did you do at Wiz Freight?", "classification": "resume", "expected": ["profile-wiz-freight"]},
+  {"question": "Did you finish your masters?", "classification": "resume", "expected": ["profile-education"]},
+  {"question": "What are your main technical skills?", "classification": "resume", "expected": ["profile-skills"]},
+  {"question": "How can I contact you?", "classification": "resume", "expected": ["profile-contact"]},
+  {"question": "What certifications do you have?", "classification": "resume", "expected": ["profile-certifications"]},
+  {"question": "How does SyncBeat coordinate playback?", "classification": "project", "expected": ["github-syncbeat-mainframe-readme", "portfolio-syncbeat"]},
+  {"question": "Tell me about Job Tracker", "classification": "project", "expected": ["portfolio-job-tracker", "github-Job-tracker-readme"]},
+  {"question": "What is Expensely?", "classification": "project", "expected": ["portfolio-expensely", "github-Expensely-readme"]}
+]

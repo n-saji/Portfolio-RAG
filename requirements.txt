@@ -9,6 +9,7 @@ mangum
 # AI Orchestration
 langchain
 langchain-core
+langchain-classic
 langgraph
 langchain-openai
 
@@ -20,9 +21,9 @@ tiktoken
 PyGithub
 
 # Vector Database & Memory
-pinecone-client
+pinecone
 langchain-pinecone
 redis
 
-# Optional: Evaluation
-ragas
+boto3
+botocore[crt]

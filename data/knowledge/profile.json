@@ -1,0 +1,100 @@
+{
+  "verified_at": "2026-10-16",
+  "sources": {
+    "resume": {
+      "url": "https://www.nikhilsaji.dev/Nikhil_Saji_Resume.pdf",
+      "sha256": "9704a2a189c9e30ab51f378e933e5b0e58afd91156414ec3a037e0c6fa52fb0c",
+      "retrieved_at": "2026-10-16"
+    },
+    "linkedin": {
+      "url": "https://www.linkedin.com/in/nikhil-sajip/",
+      "provided_by_owner_at": "2026-10-16"
+    },
+    "portfolio": {
+      "url": "https://www.nikhilsaji.dev/",
+      "reviewed_at": "2026-10-16"
+    }
+  },
+  "facts": [
+    {
+      "id": "identity",
+      "type": "resume",
+      "section": "summary",
+      "name": "Nikhil Saji",
+      "source": "resume,linkedin,portfolio",
+      "text": "I am Nikhil Saji, a software engineer and AI builder based in Virginia, USA. I build backend and distributed systems and full-stack products. My main languages are Go, Python, and Java; I also work with AWS, PostgreSQL, Docker, TypeScript, React, and Next.js. I have over two years of production software engineering experience. My current positions are Data Analyst at ACTFORE (since September 2026) and Software Engineer at Holiday Channel (since June 2026). I completed my MS in Computer Science at the University at Buffalo in February 2026."
+    },
+    {
+      "id": "current-roles",
+      "type": "resume",
+      "section": "experience",
+      "name": "Current employment",
+      "source": "resume,linkedin",
+      "text": "Current roles as of 2026-10-16: Data Analyst at ACTFORE in Reston, Virginia, started September 2026; Software Engineer at Holiday Channel in Colorado, started June 2026. These roles overlap. The supplied LinkedIn profile gives no ACTFORE duties or projects, so do not claim specific ACTFORE responsibilities. At Holiday Channel, I built a serverless Lambda classifier using hash-map keyword matching to tag 30,000+ recipes, saving about 30 hours of weekly editorial work. I automated weekly ingestion of 1,000+ media assets into S3 with synchronized PostgreSQL writes."
+    },
+    {
+      "id": "experience-duration",
+      "type": "resume",
+      "section": "experience",
+      "name": "Years of experience",
+      "source": "resume,linkedin",
+      "text": "As of October 2026, I have over two years of full-time production software engineering experience: Software Development Engineer at Wiz Freight from July 2022 to July 2024, and Software Engineer at Holiday Channel since June 2026. That is approximately two years and four months of non-overlapping full-time software engineering work. I also completed software engineering internships at Wiz Freight (March-June 2022) and Holiday Channel (May-August 2025), plus earlier internships at Cognizant, ProGrad and HighRadius. I started a concurrent Data Analyst role at ACTFORE in September 2026. When asked for a total, explain which roles are being counted; do not add overlapping roles twice."
+    },
+    {
+      "id": "wiz-freight",
+      "type": "resume",
+      "section": "experience",
+      "name": "Wiz Freight",
+      "source": "resume,linkedin",
+      "text": "I was a Software Developer Engineer Intern at Wiz Freight from March to June 2022, then a Software Development Engineer from July 2022 to July 2024 in Chennai, India. I built an automated logistics pricing engine that cut quote turnaround from four hours to under a minute while processing about 1,000 shipments daily. I reduced dashboard API p99 from 3 seconds to 600 milliseconds using Go goroutines and synchronized aggregation, and improved PostgreSQL query paths. My LinkedIn profile also describes microservice consolidation, gRPC work, billing, Rate Cloud, and features for the Elyxr SaaS product."
+    },
+    {
+      "id": "holiday-intern",
+      "type": "resume",
+      "section": "experience",
+      "name": "Holiday Channel internship",
+      "source": "resume,linkedin",
+      "text": "I was a Software Engineer Intern at Holiday Channel from May to August 2025. I improved the recipe API with Redis caching, TTL-based invalidation and paginated filters, reducing latency from about 500 ms to 150 ms according to my resume. I fixed site navigation and supported content work across Strapi, Render, S3, and Figma, including more than 100 media uploads and more than 10 holiday pages. My later full-time Holiday Channel role began in June 2026."
+    },
+    {
+      "id": "other-roles",
+      "type": "resume",
+      "section": "experience",
+      "name": "Earlier internships",
+      "source": "linkedin,portfolio",
+      "text": "Earlier internships: Programmer Analyst Intern at Cognizant, January-March 2022; Developer Intern at ProGrad, September-December 2021; Data Analyst Intern at HighRadius, May-July 2021. At HighRadius I worked on a Python-based invoice application and machine-learning deadline prediction. Public details about the Cognizant and ProGrad work are limited."
+    },
+    {
+      "id": "education",
+      "type": "resume",
+      "section": "education",
+      "name": "Education",
+      "source": "resume,linkedin",
+      "text": "I completed an MS in Computer Science at the University at Buffalo in February 2026, with a 3.78/4.0 GPA. I completed a BTech in Computer Science at SRM University in May 2022, with a 9.67/10 CGPA. I am a graduate, not a current master's student."
+    },
+    {
+      "id": "skills",
+      "type": "resume",
+      "section": "skills",
+      "name": "Technical skills",
+      "source": "resume,linkedin",
+      "text": "My documented languages are Go, Python, Java, TypeScript, JavaScript, and HTML/CSS. Frameworks and libraries include Gin, FastAPI, Spring Boot, Next.js, React, Node.js and Express. I work with PostgreSQL, MongoDB, Redis, AWS Lambda, S3, RDS, EC2 and SQS, Docker, Kubernetes, REST, gRPC, WebSockets, JWT and GORM. LinkedIn also lists full-stack development, Next.js and automation among my top skills. The sources do not establish exact years of experience for each language or framework."
+    },
+    {
+      "id": "contact",
+      "type": "resume",
+      "section": "additional_info",
+      "name": "Contact and links",
+      "source": "resume,portfolio,linkedin",
+      "text": "My public contact email is nikhilsaji200@gmail.com. My website is https://www.nikhilsaji.dev/, my GitHub is https://github.com/n-saji, and my LinkedIn profile is https://www.linkedin.com/in/nikhil-sajip/."
+    },
+    {
+      "id": "certifications",
+      "type": "resume",
+      "section": "additional_info",
+      "name": "Certifications and career interests",
+      "source": "linkedin",
+      "text": "My LinkedIn profile lists Fundamentals of Digital Marketing, Introduction to Big Data, Big Data Modeling and Management Systems, Postman API Fundamentals Student Expert, Apache Spark, and SQL for Data Analysts. I am interested in backend and full-stack engineering roles. The profile does not provide issue dates for these certifications."
+    }
+  ]
+}

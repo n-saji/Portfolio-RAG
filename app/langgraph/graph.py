@@ -3,6 +3,7 @@ from langchain_core.documents import Document
 
 class AgentState(TypedDict):
     question: str
+    retrieval_query: str
     classification: str
     documents: List[Document]
     answer: str
@@ -12,4 +13,6 @@ class AgentState(TypedDict):
     retrieval_scores: List[float]
     retrieval_metadata: List[Dict[str, Any]]
     is_follow_up: bool
+    section: str
+    tech: List[str]
 

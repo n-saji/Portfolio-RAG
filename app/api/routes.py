@@ -1,13 +1,15 @@
 import os
+import logging
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 
 from app.api.schemas import ChatRequest
 from app.langgraph.edges import build_graph
-from app.services.memory_service import save_exchange
-from app.services.rag_service import build_portfolio_rag_chain
+from app.services.memory_service import clear_session_history, get_chat_messages, save_exchange
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _is_truthy(value: str | None) -> bool:
@@ -16,21 +18,21 @@ def _is_truthy(value: str | None) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
-    chain = build_portfolio_rag_chain()
-    response = chain.invoke({"input": request.question})
-    return {"answer": response["answer"]}
+async def chat(request: Request, payload: ChatRequest):
+    return await advanced_chat(request, payload)
 
 @router.post("/advanced-chat")
 async def advanced_chat(request: Request, payload: ChatRequest):
-    if not payload.question:
-        return {"answer": "Please provide a valid question."}
-    session_id = getattr(request.state, "session_id", None) or payload.session_id
+    session_id = request.state.session_id
     agent_app = build_graph()
-    inputs = {"question": payload.question, "session_id": session_id}
-    result = agent_app.invoke(inputs)
+    inputs = {"question": payload.question.strip(), "session_id": session_id}
+    try:
+        result = await run_in_threadpool(agent_app.invoke, inputs)
+    except Exception:
+        logger.exception("Portfolio agent request failed")
+        raise HTTPException(status_code=503, detail="Portfolio agent temporarily unavailable") from None
 
-    save_exchange(session_id=session_id, human_query=payload.question, ai_response=result["answer"])
+    save_exchange(session_id=session_id, human_query=payload.question.strip(), ai_response=result["answer"])
 
     response = {
         "answer": result["answer"],
@@ -45,3 +47,15 @@ async def advanced_chat(request: Request, payload: ChatRequest):
         }
 
     return response
+
+
+@router.get("/history")
+async def history(request: Request):
+    """Return this browser's recent questions and answers for chat restoration."""
+    return {"messages": get_chat_messages(request.state.session_id)}
+
+
+@router.delete("/history")
+async def delete_history(request: Request):
+    clear_session_history(request.state.session_id)
+    return {"messages": []}

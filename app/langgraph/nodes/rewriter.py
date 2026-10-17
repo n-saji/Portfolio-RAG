@@ -14,12 +14,11 @@ def rewrite_query_node(state: AgentState) -> AgentState:
     history = get_chat_history(session_id)
 
     if not history:
-        # Nothing to rewrite against, pass through as-is
-        return {**state, "is_follow_up": False}
+        return {"retrieval_query": question, "is_follow_up": False}
 
     history_text = extract_last_n_conversations(history, n = 2)
 
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, api_key=os.getenv("OPENAI_API_KEY"))
+    llm = ChatOpenAI(model=os.getenv("RAG_ROUTER_MODEL", "gpt-4.1-mini"), temperature=0, timeout=25)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are a query rewriter. Given a conversation history and a follow-up question,
@@ -33,5 +32,5 @@ def rewrite_query_node(state: AgentState) -> AgentState:
 
     print(f"---REWRITER: '{question}' → '{rewritten}'---")
 
-    # Overwrite question with the rewritten one, mark as no longer a follow-up
-    return {**state, "question": rewritten, "is_follow_up": False}
+    # Preserve the user's wording for the answer and use the rewrite only for retrieval.
+    return {"retrieval_query": rewritten[:500], "is_follow_up": False}

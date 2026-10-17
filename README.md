@@ -1,126 +1,67 @@
 # Portfolio RAG Agent
 
-A retrieval-augmented generation (RAG) agent that answers questions about my portfolio using grounded context from my resume and project writeups. It ships with a simple RAG endpoint and an advanced LangGraph pipeline with classification, retrieval filtering, and optional session memory.
+The portfolio chat runs on FastAPI in AWS Lambda. Its original LangGraph shape is
+preserved: **classifier → optional follow-up rewriter → retriever → generator or
+fallback**. Pinecone holds the evidence, and Redis stores the last ten exchanges
+for a browser session. Both `/api/v1/chat` and `/api/v1/advanced-chat` use the
+same grounded graph. The website reads `/api/v1/history` to restore prior turns.
 
-## Highlights
+## What the agent knows
 
-- FastAPI API with two chat modes (simple RAG and advanced agent).
-- LangGraph routing for resume vs project questions.
-- Pinecone vector store with OpenAI embeddings.
-- Optional Redis-backed chat memory for follow-ups.
-- Clean ingestion pipeline for resume and project sources.
+- `data/knowledge/profile.json` contains reviewed career, education, skill and
+  contact facts. It includes the owner-provided LinkedIn details from 2026-10-16:
+  concurrent ACTFORE and Holiday Channel roles and the split Wiz Freight dates.
+- The published resume PDF is fetched and parsed on refresh. Its SHA-256 and
+  retrieval date are stored in the source snapshot.
+- Public non-fork GitHub repositories are listed; recent README files provide
+  detailed project evidence. Related repositories are grouped by project name.
+- The portfolio publishes `/portfolio-facts.json` on each site build. A reviewed
+  copy in `data/knowledge/portfolio.json` is the fallback.
 
-## Architecture (high level)
+LinkedIn blocks automated full-profile retrieval. The current owner-provided
+details are reviewed in `profile.json`; later LinkedIn changes need a new export
+or owner-provided profile text before they can be added. Raw LinkedIn exports
+must stay outside Git and Pinecone.
 
-1. Ingest markdown resume and project files into Pinecone with metadata.
-2. Classify the incoming question as resume, project, or unknown.
-3. Retrieve relevant chunks using metadata filters and score thresholds.
-4. Generate a grounded response with optional conversation history.
-5. Fallback when the query is out of scope or confidence is low.
+## Refreshing Pinecone
 
-Entry point: [app/main.py](app/main.py)
+The weekly GitHub Actions workflow runs these commands and activates a verified,
+versioned namespace. A failed fetch, missing core fact, vector-count mismatch or
+readback failure prevents activation. The previous namespace remains available
+for rollback.
 
-## Data sources
+```bash
+python scripts/refresh_sources.py
+python scripts/refresh_index.py --activate
+```
 
-Ingestion uses markdown files in:
-
-- [data/raw/resume](data/raw/resume)
-- [data/raw/projects](data/raw/projects)
-
-Update these files to refresh the knowledge base, then re-run ingestion.
+For local review, run `refresh_sources.py --resume-file PATH --portfolio-file
+PATH`, inspect `data/generated/records.json`, then run `refresh_index.py`
+without `--activate`. The source snapshot is ignored by Git. The indexer uses
+`AWS_PROFILE=portfolio-rag` locally if AWS credentials are needed; in Actions
+it uses the configured AWS credentials and reads provider keys from the Lambda
+configuration. The runtime reads `PINECONE_NAMESPACE`; an unset value keeps the
+original default Pinecone namespace available.
 
 ## API
 
-Base path: `/api/v1`
+`POST /api/v1/advanced-chat` accepts `{"question":"..."}` (1–500 characters).
+`POST /api/v1/chat` is an alias. Responses contain `answer`, `classification`
+and a retrieved document count. `GET /api/v1/history` returns this browser's
+recent `{role, content}` messages; `DELETE /api/v1/history` clears them. A secure
+HTTP-only `session_id` cookie connects these requests. Redis history expires
+after seven days and is bounded to 20 messages. Provider failures do not reveal
+keys or internal errors in the answer.
 
-Endpoints:
+## Local development
 
-- `POST /chat` simple RAG chain
-- `POST /advanced-chat` full agent pipeline with memory and debug options
-
-Request body:
-
-```json
-{
-  "question": "What backend technologies did you use at Wiz Freight?",
-  "session_id": "optional-session-id"
-}
-```
-
-Example curl:
+Use Python 3.12. Install `requirements.lock` and configure `.env` with
+`OPENAI_API_KEY`, `PINECONE_API_KEY`, `PINECONE_INDEX_NAME`, and
+`PINECONE_DIMENSIONS` (1024 for the current index). `USE_REDIS_MEMORY=true` and
+`REDIS_URL` enable session memory. `RAG_ROUTER_MODEL` and `RAG_ANSWER_MODEL` are
+optional; defaults are `gpt-4.1-mini` and `gpt-4.1`.
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/advanced-chat \
-  -H "Content-Type: application/json" \
-  -d '{"question":"What projects use Go?"}'
+python -m unittest discover -s tests -v
+uvicorn app.main:app --reload
 ```
-
-## Quickstart (local)
-
-1. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
-2. Set the required environment variables (see below). dotenv is supported.
-3. Ingest data:
-   ```bash
-   python scripts/ingest.py
-   ```
-4. Run the API:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-
-## Environment variables
-
-Set the following environment variables:
-
-```bash
-# OpenAI
-OPENAI_API_KEY=...
-
-# Pinecone
-PINECONE_API_KEY=...
-PINECONE_INDEX_NAME=...
-PINECONE_DIMENSIONS=1536
-
-# Retrieval thresholds
-MIN_SCORE_THRESHOLD=0.2
-CONFIDENCE_THRESHOLD=0.25
-
-# Debug
-DEBUG_RAG=false
-
-# Optional Redis memory
-USE_REDIS_MEMORY=false
-REDIS_URL=redis://localhost:6379/0
-```
-
-Notes:
-
-- `MIN_SCORE_THRESHOLD` filters individual matches; `CONFIDENCE_THRESHOLD` gates the final answer.
-- When `DEBUG_RAG=true`, `/advanced-chat` includes retrieval scores and metadata.
-
-## Deployment
-
-This repo includes an AWS Lambda-friendly Dockerfile that uses Mangum to serve FastAPI:
-
-- [Dockerfile](Dockerfile)
-- Lambda handler: `app.main.handler`
-
-If you want local Docker testing, build the image and run it with your preferred Lambda runtime tooling.
-
-## Project structure (key files)
-
-- [app/api/routes.py](app/api/routes.py) request routing and API responses
-- [app/langgraph](app/langgraph) LangGraph nodes and edges
-- [app/services/rag_service.py](app/services/rag_service.py) simple RAG chain
-- [scripts/ingest.py](scripts/ingest.py) ingestion pipeline
-
-## Roadmap ideas
-
-- Add tech-stack filtering for project queries at ingestion time.
-- Improve prompt grounding and add citations in responses.
-- Add automated evaluation with `ragas`.

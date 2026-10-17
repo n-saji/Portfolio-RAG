@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from dotenv import load_dotenv
 from app.api.routes import router as api_router
-from app.services.memory_service import create_session_id
+from app.services.memory_service import create_session_id, valid_session_id
 
 load_dotenv()
 app = fastapi.FastAPI()
@@ -22,14 +22,14 @@ app = fastapi.FastAPI()
 @app.middleware("http")
 async def check_for_session_id(request: fastapi.Request, call_next):
     session_id = None
-    if request.url.path.startswith("/api/v1/advanced-chat"):
-        session_id = request.cookies["session_id"] if "session_id" in request.cookies else None
-        if not session_id:
+    if request.url.path in {"/api/v1/advanced-chat", "/api/v1/chat", "/api/v1/history"}:
+        session_id = request.cookies.get("session_id")
+        if not valid_session_id(session_id):
             session_id = create_session_id()
         request.state.session_id = session_id
     response = await call_next(request)
     if session_id:
-        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=86400, samesite="none", secure=True)
+        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=604800, samesite="lax", secure=True)
     return response
 
 
