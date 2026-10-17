@@ -11,6 +11,10 @@ same grounded graph. The website reads `/api/v1/history` to restore prior turns.
 - `data/knowledge/profile.json` contains reviewed career, education, skill and
   contact facts. It includes the owner-provided LinkedIn details from 2026-10-16:
   concurrent ACTFORE and Holiday Channel roles and the split Wiz Freight dates.
+  The LinkedIn profile PDF supplied on that date was checked against those
+  facts; its SHA-256 is recorded there, while the PDF stays outside Git and
+  Pinecone. The profile and resume disagree about which Holiday Channel role
+  included the Redis caching work, so that attribution is marked uncertain.
 - The published resume PDF is fetched and parsed on refresh. Its SHA-256 and
   retrieval date are stored in the source snapshot.
 - Public non-fork GitHub repositories are listed; recent README files provide

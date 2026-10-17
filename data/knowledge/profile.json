@@ -8,7 +8,9 @@
     },
     "linkedin": {
       "url": "https://www.linkedin.com/in/nikhil-sajip/",
-      "provided_by_owner_at": "2026-10-16"
+      "provided_by_owner_at": "2026-10-16",
+      "profile_pdf_sha256": "8d81b06998ff967f88589666ee8f652bb74909b4fe6a703f515f8876a3efbf72",
+      "profile_pdf_created_at": "2026-10-16"
     },
     "portfolio": {
       "url": "https://www.nikhilsaji.dev/",
@@ -54,7 +56,7 @@
       "section": "experience",
       "name": "Holiday Channel internship",
       "source": "resume,linkedin",
-      "text": "I was a Software Engineer Intern at Holiday Channel from May to August 2025. I improved the recipe API with Redis caching, TTL-based invalidation and paginated filters, reducing latency from about 500 ms to 150 ms according to my resume. I fixed site navigation and supported content work across Strapi, Render, S3, and Figma, including more than 100 media uploads and more than 10 holiday pages. My later full-time Holiday Channel role began in June 2026."
+      "text": "I was a Software Engineer Intern at Holiday Channel from May to August 2025. I improved the recipe API with Redis caching, TTL-based invalidation and paginated filters, reducing latency from about 500 ms to 150 ms according to my published resume. My LinkedIn profile places this caching achievement under my later Software Engineer role, so the exact role attribution differs between sources. I fixed site navigation and supported content work across Strapi, Render, S3, and Figma, including more than 100 media uploads and more than 10 holiday pages. My later full-time Holiday Channel role began in June 2026."
     },
     {
       "id": "other-roles",
@@ -70,7 +72,7 @@
       "section": "education",
       "name": "Education",
       "source": "resume,linkedin",
-      "text": "I completed an MS in Computer Science at the University at Buffalo in February 2026, with a 3.78/4.0 GPA. I completed a BTech in Computer Science at SRM University in May 2022, with a 9.67/10 CGPA. I am a graduate, not a current master's student."
+      "text": "I completed an MS in Computer Science at the University at Buffalo in February 2026, with a 3.78/4.0 GPA. I completed a BTech in Computer Science (Big Data Analytics) at SRM University in May 2022, with a 9.67/10 CGPA. My LinkedIn profile also lists 12th grade at Velammal Vidyalaya from April 2017 to April 2018 and 10th grade there from April 2015 to May 2016. I am a graduate, not a current master's student."
     },
     {
       "id": "skills",

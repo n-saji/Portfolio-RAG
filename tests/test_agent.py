@@ -55,6 +55,19 @@ class AgentTests(unittest.TestCase):
         self.assertIn("can't put a verified number of years", result["answer"])
         self.assertNotIn("five", result["answer"].lower())
 
+    def test_conflicting_role_attribution_is_not_presented_as_certain(self):
+        conflict = Document(
+            page_content="My LinkedIn profile places this caching achievement under my later Software Engineer role, so the exact role attribution differs between sources.",
+            metadata={"record_id": "profile-holiday-intern"},
+        )
+        result = generate_node({
+            "question": "Did you do Redis caching during your Holiday Channel internship or later role?",
+            "documents": [conflict], "session_id": "",
+        })
+        self.assertIn("not sure which role", result["answer"])
+        self.assertIn("resume", result["answer"])
+        self.assertIn("LinkedIn", result["answer"])
+
     def test_project_grouping_and_heading_chunks(self):
         self.assertEqual(project_name("syncbeat-analytics"), "SyncBeat")
         self.assertEqual(project_name("Job-tracker-FE"), "Job Tracker")

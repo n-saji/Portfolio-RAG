@@ -69,6 +69,14 @@ def generate_node(state: AgentState):
         if "do not establish exact years" in skills.lower():
             technology = next(tech for tech in TECHNOLOGIES if tech in question_lower)
             return {"answer": f"I've used {technology.title()} in my work and projects, but I can't put a verified number of years on it.", "history": history}
+    if (re.search(r"redis|cach(?:e|ing)", question_lower)
+            and re.search(r"holiday|intern|role|when|which", question_lower)
+            and any("exact role attribution differs" in doc.page_content.lower()
+                    for doc in state["documents"])):
+        return {
+            "answer": "I did the Redis caching work at Holiday Channel, but I'm not sure which role to attribute it to. My resume lists it under my 2025 internship, while my LinkedIn profile lists it under my later Software Engineer role.",
+            "history": history,
+        }
     evidence, stale = _evidence(state)
     llm = ChatOpenAI(
         model=os.getenv("RAG_ANSWER_MODEL", "gpt-4.1"),
