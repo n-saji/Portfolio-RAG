@@ -31,17 +31,15 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image
+      - name: Build and push Lambda-compatible image
         run: |
-          docker build \
+          docker buildx build \
             --platform linux/amd64 \
             --no-cache \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
+            --provenance=false \
+            --sbom=false \
+            --output "type=image,name=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }},push=true,oci-mediatypes=false" \
             .
-
-      - name: Push image to ECR
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
 
       - name: Configure Lambda deployment credentials
         uses: aws-actions/configure-aws-credentials@v4
