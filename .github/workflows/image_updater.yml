@@ -54,6 +54,6 @@ jobs:
             --function-name $LAMBDA_FUNCTION \
             --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
             --region $AWS_REGION
-          aws lambda wait function-updated-v2 \
+          aws lambda wait function-updated \
             --function-name $LAMBDA_FUNCTION \
             --region $AWS_REGION
